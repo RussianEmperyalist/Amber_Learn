@@ -1,0 +1,533 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Урок · Amber Learn</title>
+  <style>
+    html { visibility: hidden; }
+    html.ready { visibility: visible; }
+  </style>
+  <script>
+    window.addEventListener('load', function() {
+      document.documentElement.classList.add('ready');
+    });
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="./styles/cyberpunk.css?v=5">
+  <link rel="stylesheet" href="./styles/layout.css?v=5">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="./js/highlighter.js?v=5" defer></script>
+</head>
+<body>
+  <header class="app-header"></header>
+
+  <div class="layout lesson-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="content" id="lessonContent">
+      <div class="card"><span class="spinner"></span> Загрузка урока...</div>
+    </main>
+    <aside class="toc" id="toc">
+      <div class="toc-title">Содержание</div>
+    </aside>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script type="module">
+    import { renderHeader, getQuery, toast } from './scripts/app.js?v=5';
+    import { content } from './scripts/content.js?v=5';
+    import { auth } from './scripts/auth.js?v=5';
+    import { progress } from './scripts/progress.js?v=5';
+    import { createPlayground } from './scripts/editor.js?v=5';
+
+    renderHeader('home').catch(() => {});
+
+    // Ресайз левого сайдбара за правую грань (desktop)
+    (() => {
+      const sb = document.getElementById('sidebar');
+      if (!sb) return;
+      let dragging = false, startX = 0, startW = 0;
+      sb.addEventListener('mousedown', (e) => {
+        if (window.innerWidth < 900) return;   // на мобильном сайдбар — fixed overlay, не ресайзим
+        if (e.offsetX < sb.offsetWidth - 8) return; // только за правую грань (зона resize ~8px)
+        dragging = true;
+        startX = e.clientX;
+        startW = sb.offsetWidth;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const w = Math.min(640, Math.max(220, startW + (e.clientX - startX)));
+        sb.classList.add('resizing');
+        sb.style.width = w + 'px';
+      });
+      window.addEventListener('mouseup', () => {
+        if (!dragging) return;
+        dragging = false;
+        sb.classList.remove('resizing');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      });
+    })();
+
+    (async () => {
+      const courseId = getQuery('course');
+      const lessonId = getQuery('lesson');
+      if (!courseId || !lessonId) { location.href = './index.html'; return; }
+
+      const user = await auth.current();
+      const idx = await content.getLessonsIndex(courseId);
+      const course = await content.getCourse(courseId);
+
+      let lesson;
+      try {
+        lesson = await content.getLesson(courseId, lessonId);
+      } catch (e) {
+        document.getElementById('lessonContent').innerHTML = `
+          <div class="card">
+            <h1>Урок не найден</h1>
+            <p style="color:var(--text-muted);">Урок "${lessonId}" не существует в этом курсе.</p>
+            <a href="./course.html?id=${courseId}" class="btn">← Вернуться к курсу</a>
+          </div>
+        `;
+        document.title = 'Урок не найден · Amber Learn';
+        return;
+      }
+
+      document.title = `${lesson.title} · Amber Learn`;
+
+      // Prereq hint (ненавязчивая подсказка, если предыдущий урок не пройден)
+      let prereqHint = '';
+      if (user && lesson.prereq && lesson.prereq.length) {
+        const prereqProgress = await Promise.all(
+          lesson.prereq.map(pid => progress.getLesson(user.id, pid))
+        );
+        const unmet = lesson.prereq.filter((pid, i) => prereqProgress[i]?.status !== 'completed');
+        if (unmet.length) {
+          const names = unmet.map(pid => {
+            const l = idx.lessons.find(x => x.id === pid.replace('javascript-', ''));
+            return l ? l.title : pid;
+          });
+          prereqHint = `<div class="aside-block tip" style="margin-bottom:16px;">💡 Рекомендуем сначала пройти: ${names.join(', ')}</div>`;
+        }
+      }
+
+      // Сайдбар
+      const allProgress = user ? await progress.getAll(user.id) : [];
+      const map = new Map(allProgress.map(p => [p.lessonId, p]));
+      document.getElementById('sidebar').innerHTML = `
+        <div class="sidebar-section">Курсы / ${course.title}</div>
+        ${idx.lessons.map((l, i) => {
+          const p = map.get(l.id);
+          const cls = l.id === lessonId ? 'active' : (p?.status === 'completed' ? 'done' : '');
+          return `<a href="./lesson.html?course=${courseId}&lesson=${l.id}" class="${cls}">
+            <span class="num">${String(i+1).padStart(2,'0')}</span> ${l.title}
+          </a>`;
+        }).join('')}
+        <div class="sidebar-section">Навигация</div>
+        <a href="./course.html?id=${courseId}">← К программе курса</a>
+      `;
+
+      document.querySelectorAll('.sidebar a').forEach(link => {
+        link.addEventListener('click', () => {
+          document.body.classList.remove('menu-open');
+          document.getElementById('menuToggle')?.setAttribute('aria-expanded', 'false');
+        });
+      });
+
+      // Контент урока
+      const main = document.getElementById('lessonContent');
+      main.innerHTML = `
+        <div class="lesson-header">
+          <span class="badge">${course.title}</span>
+        </div>
+        <h1 class="lesson-title">${lesson.title}</h1>
+        ${prereqHint}
+        ${lesson.goal ? `<p class="goal">${lesson.goal}</p>` : ''}
+        <div id="theory"></div>
+        <div id="tasks"></div>
+        ${lesson.recap ? '<div id="recap"></div>' : ''}
+        <div id="quizSection"></div>
+        <div class="lesson-nav">
+          <button class="btn btn-ghost" id="prevBtn">← Предыдущий</button>
+          <button class="btn btn-primary" id="completeBtn">Отметить как пройденный</button>
+          <button class="btn btn-ghost" id="nextBtn">Следующий →</button>
+        </div>
+      `;
+
+      // Рендер теории
+      const theory = document.getElementById('theory');
+      theory.innerHTML = (lesson.theory || []).map(block => renderTheoryBlock(block)).join('');
+
+      if (window.AmberHighlighter) window.AmberHighlighter.highlightAll();
+
+      // TOC из заголовков
+      const toc = document.getElementById('toc');
+      const headings = lesson.theory?.filter(b => b.type === 'heading') || [];
+      let tocHtml = '';
+      if (headings.length) {
+        tocHtml = '<div class="toc-title">Содержание</div>' + headings.map(h => {
+          const slug = h.content.toLowerCase().replace(/[^а-яёa-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return `<a href="#${slug}" data-slug="${slug}">${h.content}</a>`;
+        }).join('');
+      }
+
+      const tocLinks = {};
+
+      const totalTasks = lesson.tasks?.length || 0;
+      const totalQuiz = lesson.quiz?.length || 0;
+      let completedTasks = 0;
+      let completedQuiz = 0;
+      const passedTasks = new Set();
+      toc.innerHTML = tocHtml + `
+        <div class="lesson-progress-card">
+          <div class="stat-row"><span>Задач решено</span> <b id="tasksProgress">0 / ${totalTasks}</b></div>
+          <div class="stat-row"><span>Тестов</span> <b id="quizProgress">0 / ${totalQuiz}</b></div>
+          <div class="progress"><div id="overallProgress" style="width:0%" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div>
+        </div>
+      `;
+
+      const progressEl = document.getElementById('overallProgress');
+      const tasksLabel = document.getElementById('tasksProgress');
+      const quizLabel = document.getElementById('quizProgress');
+
+      function updateProgress() {
+        const total = totalTasks + totalQuiz;
+        const done = completedTasks + quizAnswered.size;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        tasksLabel.textContent = `${completedTasks} / ${totalTasks}`;
+        quizLabel.textContent = `${quizAnswered.size} / ${totalQuiz}`;
+        if (progressEl) {
+          progressEl.style.width = pct + '%';
+          progressEl.setAttribute('aria-valuenow', pct);
+        }
+        updateCompleteBtn();
+      }
+
+      // IntersectionObserver для подсветки активного пункта TOC
+      const headingEls = document.querySelectorAll('h2[id]');
+      headingEls.forEach(h => {
+        tocLinks[h.id] = toc.querySelector(`a[data-slug="${h.id}"]`);
+      });
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          const link = tocLinks[entry.target.id];
+          if (!link) return;
+          if (entry.isIntersecting) {
+            link.classList.add('active');
+          } else {
+            link.classList.remove('active');
+          }
+        });
+      }, { threshold: 0.5, rootMargin: '-80px 0px -80px 0px' });
+      headingEls.forEach(h => observer.observe(h));
+
+      // Рендер recap
+      if (lesson.recap && lesson.recap.length) {
+        const recap = document.getElementById('recap');
+        recap.innerHTML = '<h2>Ключевые мысли</h2>' + lesson.recap.map(p => `<div class="recap-item">• ${p}</div>`).join('');
+      }
+
+      // Задачи
+      const tasks = document.getElementById('tasks');
+      const savedProgress = user ? await progress.getLesson(user.id, lesson.id) : null;
+      const restoredTasks = savedProgress?.tasks || {};
+      const restoredQuiz = savedProgress?.quiz || {};
+
+      for (const [i, task] of (lesson.tasks || []).entries()) {
+        const wrap = document.createElement('div');
+        wrap.className = 'task-card';
+        wrap.innerHTML = `
+          <div class="task-header">
+            <span class="badge ${task.type === 'debug' ? 'active' : ''}">Задача ${i + 1}</span>
+          </div>
+          <div class="task-prompt">${task.prompt}</div>
+          <div class="hints-container" id="hints-${task.id}"></div>
+        `;
+        const mount = document.createElement('div');
+        wrap.appendChild(mount);
+        tasks.appendChild(wrap);
+
+        // Восстановление решённых задач
+        const taskPassed = restoredTasks[task.id]?.passed;
+        if (taskPassed) {
+          passedTasks.add(task.id);
+          completedTasks++;
+        }
+
+        // Collapsible hints
+        const hintsContainer = wrap.querySelector('.hints-container');
+        renderHints(hintsContainer, task.hints || [], task);
+
+        await createPlayground(mount, {
+          starter: task.starter || '',
+          checks: task.checks || [],
+          tests: task.tests || [],
+          solution: task.solution || '',
+          userId: user?.id,
+          taskId: task.id,
+          currentLessonId: lesson.id,
+          onPass: async () => {
+            if (!passedTasks.add(task.id)) return;
+            toast('Задача решена ✓', 'success');
+            completedTasks++;
+            updateProgress();
+            if (user) {
+              await progress.setTaskResult(user.id, lesson.id, task.id, true);
+              await markLessonProgress();
+            }
+          },
+        });
+      }
+
+      function renderHints(container, hints, task) {
+        if (!hints || !hints.length) return;
+        let html = '';
+        hints.forEach((h, hi) => {
+          const hintText = typeof h === 'string' ? h : (h.step || h.code || '');
+          const hintCode = typeof h === 'object' && h.code ? h.code : '';
+          const isSolution = hintText.toLowerCase().includes('решен') || hintText.toLowerCase().includes('answer') || hintText.toLowerCase().includes('правильн');
+          html += `
+            <button class="hint-toggle" aria-expanded="false" aria-controls="hint-${task.id}-${hi}">
+              ${isSolution ? 'Показать решение' : 'Подсказка ' + (hi + 1)}
+            </button>
+            <div class="hint-content${isSolution ? ' solution' : ''}" id="hint-${task.id}-${hi}">
+              ${escapeHtml(hintText)}
+              ${hintCode ? '<pre class="language-javascript"><code class="language-javascript">' + escapeHtml(hintCode) + '</code></pre>' : ''}
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+
+        container.querySelectorAll('.hint-toggle').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const expanded = btn.getAttribute('aria-expanded') === 'true';
+            btn.setAttribute('aria-expanded', !expanded);
+            const content = btn.nextElementSibling;
+            if (content) content.classList.toggle('show', !expanded);
+          });
+        });
+      }
+
+      // Квиз — с возможностью пересдачи
+      const quizAnswered = new Set();
+      const quizCorrect = new Set();
+      if (lesson.quiz?.length) {
+        const qs = document.getElementById('quizSection');
+        qs.innerHTML = '<h2>Проверка</h2>';
+        lesson.quiz.forEach((q, qi) => {
+          const block = document.createElement('div');
+          block.className = 'card';
+          block.innerHTML = `
+            <div class="quiz-question">${qi + 1}. ${q.q}</div>
+            <div class="quiz-options"></div>
+          `;
+          const opts = block.querySelector('.quiz-options');
+          q.options.forEach((opt, oi) => {
+            const el = document.createElement('div');
+            el.className = 'quiz-option';
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+            el.textContent = `${String.fromCharCode(65 + oi)}. ${opt}`;
+            el.addEventListener('click', onSelect);
+            el.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(); } });
+            opts.appendChild(el);
+            function onSelect() {
+              if (el.dataset.done) return;
+              opts.querySelectorAll('.quiz-option').forEach(o => o.dataset.done = '1');
+              const correct = oi === q.answer;
+              el.classList.add(correct ? 'correct' : 'wrong');
+              if (!correct) opts.children[q.answer].classList.add('correct');
+              if (q.explain) {
+                const expl = document.createElement('div');
+                expl.className = 'quiz-explanation';
+                expl.innerHTML = `<strong>Объяснение:</strong> ${q.explain}`;
+                block.appendChild(expl);
+              }
+              // Кнопка "Ещё раз" для этого вопроса
+              const retryBtn = document.createElement('button');
+              retryBtn.className = 'btn btn-ghost btn-sm';
+              retryBtn.style.marginTop = '8px';
+              retryBtn.textContent = 'Ещё раз';
+              retryBtn.addEventListener('click', () => {
+                opts.querySelectorAll('.quiz-option').forEach(o => {
+                  o.classList.remove('correct', 'wrong');
+                  delete o.dataset.done;
+                });
+                expl?.remove();
+                retryBtn.remove();
+                quizAnswered.delete(qi);
+                quizCorrect.delete(qi);
+                updateProgress();
+              });
+              block.appendChild(retryBtn);
+
+              quizAnswered.add(qi);
+              if (correct) { quizCorrect.add(qi); } else { quizCorrect.delete(qi); }
+              updateProgress();
+              if (user) {
+                progress.setQuizResult(user.id, lesson.id, `${lesson.id}-q${qi}`, correct);
+                markLessonProgress();
+              }
+            }
+          });
+          qs.appendChild(block);
+        });
+      }
+
+      // Навигация prev/next
+      const idxPos = idx.lessons.findIndex(l => l.id === lessonId);
+      const prev = idx.lessons[idxPos - 1];
+      const next = idx.lessons[idxPos + 1];
+      document.getElementById('prevBtn').onclick = prev
+        ? () => location.href = `./lesson.html?course=${courseId}&lesson=${prev.id}`
+        : undefined;
+      if (!prev) document.getElementById('prevBtn').disabled = true;
+      document.getElementById('nextBtn').onclick = next
+        ? () => location.href = `./lesson.html?course=${courseId}&lesson=${next.id}`
+        : undefined;
+      if (!next) document.getElementById('nextBtn').disabled = true;
+
+      // Отметка о прохождении — все задачи решены И на все вопросы дан ответ
+      const completeBtn = document.getElementById('completeBtn');
+      function updateCompleteBtn() {
+        const allDone = completedTasks === totalTasks && quizAnswered.size === totalQuiz;
+        completeBtn.disabled = !allDone;
+      }
+      if (user) {
+        const p = map.get(lesson.id);
+        if (p?.status === 'completed') completeBtn.textContent = '✓ Пройдено';
+        completeBtn.onclick = async () => {
+          await progress.completeLesson(user.id, lesson.id);
+          toast('Урок отмечен как пройденный', 'success');
+          completeBtn.textContent = '✓ Пройдено';
+          completeBtn.disabled = true;
+        };
+      } else {
+        completeBtn.onclick = () => location.href = './login.html';
+        completeBtn.textContent = 'Войдите, чтобы сохранять прогресс';
+      }
+      updateCompleteBtn();
+
+      if (user) markLessonProgress();
+
+      async function markLessonProgress() {
+        await progress.markStarted(user.id, lesson.id);
+      }
+
+      function renderTheoryBlock(b) {
+        if (b.type === 'hook') return `<div class="aside-block"><strong>◆</strong> ${b.content}</div>`;
+        if (b.type === 'text') return `<p>${b.content}</p>`;
+        if (b.type === 'html') return b.content;
+        if (b.type === 'code') {
+          const lang = b.lang || 'javascript';
+          return `<pre class="language-${lang}"><code class="language-${lang}">${escapeHtml(b.content)}</code></pre>`;
+        }
+        if (b.type === 'note') return `<div class="aside-block"><strong>Примечание</strong> ${b.content}</div>`;
+        if (b.type === 'warning') return `<div class="aside-block warning"><strong>Внимание</strong> ${b.content}</div>`;
+        if (b.type === 'tip') return `<div class="aside-block tip"><strong>Подсказка</strong> ${b.content}</div>`;
+        if (b.type === 'heading') {
+          const slug = b.content.toLowerCase().replace(/[^а-яёa-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+          return `<h2 id="${slug}">${b.content}</h2>`;
+        }
+        if (b.type === 'predict') return renderPredictBlock(b);
+        return '';
+      }
+
+      function renderPredictBlock(b) {
+        if (!b || !b.code || !b.question || !Array.isArray(b.options) || typeof b.answer !== 'number') {
+          console.warn('[predict] Skipped malformed predict block:', b);
+          return `<div class="aside-block warning"><strong>⚠ ПРЕДУПРЕЖДЕНИЕ.</strong> Predict-блок с ошибкой формата пропущен.</div>`;
+        }
+        return `
+          <div class="predict-block">
+            <pre class="language-javascript"><code class="language-javascript">${escapeHtml(b.code)}</code></pre>
+            <div class="predict-question">${b.question}</div>
+            <div class="predict-options" data-answer="${b.answer}" role="group">
+              ${b.options.map((opt, oi) => `
+                <div class="predict-option" data-idx="${oi}" role="button" tabindex="0">
+                  ${String.fromCharCode(65 + oi)}. ${opt}
+                </div>
+              `).join('')}
+            </div>
+            <div class="predict-explain">
+              <strong>Объяснение:</strong> ${b.explain}
+            </div>
+          </div>
+        `;
+      }
+
+      document.querySelectorAll('.predict-options').forEach(container => {
+        const correctIdx = parseInt(container.dataset.answer);
+        container.addEventListener('click', function(e) {
+          const opt = e.target.closest('.predict-option');
+          if (!opt || opt.dataset.done === '1') return;
+          const all = container.querySelectorAll('.predict-option');
+          all.forEach(o => { o.dataset.done = '1'; });
+          const isCorrect = parseInt(opt.dataset.idx) === correctIdx;
+          opt.classList.add(isCorrect ? 'correct' : 'wrong');
+          if (!isCorrect) all[correctIdx].classList.add('correct');
+          const expl = container.nextElementSibling;
+          if (expl) expl.classList.add('show');
+        });
+        container.querySelectorAll('.predict-option').forEach(opt => {
+          opt.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              const clickEvent = new MouseEvent('click', { bubbles: true });
+              opt.dispatchEvent(clickEvent);
+            }
+          });
+        });
+      });
+
+      function escapeHtml(s) {
+        return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+      }
+    })();
+  </script>
+
+   <script>
+    if ('serviceWorker' in navigator &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1') {
+      navigator.serviceWorker.register('./service-worker.js?v=5').then(reg => {
+        setInterval(() => reg.update(), 60000);
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'activated' && reg.active) {
+                const refreshing = sessionStorage.getItem('refreshing');
+                if (!refreshing) {
+                  sessionStorage.setItem('refreshing', '1');
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          const refreshing = sessionStorage.getItem('refreshing');
+          if (!refreshing) {
+            sessionStorage.setItem('refreshing', '1');
+            window.location.reload();
+          }
+        });
+      });
+    } else if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        rs.forEach(r => r.unregister());
+      });
+      if (window.caches) {
+        caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет · Amber Learn</title>
+  <style>
+    html { visibility: hidden; }
+    html.ready { visibility: visible; }
+  </style>
+  <script>
+    window.addEventListener('load', function() {
+      document.documentElement.classList.add('ready');
+    });
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="./styles/cyberpunk.css?v=5">
+  <link rel="stylesheet" href="./styles/layout.css?v=5">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header"></header>
+
+  <div class="layout no-sidebar">
+    <main class="content wide">
+      <h1 id="greeting">Загрузка...</h1>
+      <div class="stats-grid" id="stats"></div>
+      <h2 class="section-title">// Прогресс по курсам</h2>
+      <div id="coursesProgress"></div>
+    </main>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script type="module">
+    import { renderHeader } from './scripts/app.js?v=5';
+    import { auth } from './scripts/auth.js?v=5';
+    import { content } from './scripts/content.js?v=5';
+    import { escapeHtml } from './scripts/app.js?v=5';
+    import { progress } from './scripts/progress.js?v=5';
+
+    renderHeader('dash').catch(() => {});
+
+    (async () => {
+      const user = await auth.current();
+      if (!user) { location.href = './login.html'; return; }
+
+      document.getElementById('greeting').innerHTML = `> Привет, <span class="user-name">${escapeHtml(user.username)}</span>`;
+
+      const courses = await content.getCourses();
+      const allProgress = await progress.getAll(user.id);
+
+      const totalCompleted = allProgress.filter(p => p.status === 'completed').length;
+      const totalInProgress = allProgress.filter(p => p.status === 'in-progress').length;
+      const totalTasks = allProgress.reduce((s, p) =>
+        s + Object.values(p.tasks || {}).filter(t => t.passed).length, 0);
+      const totalQuiz = allProgress.reduce((s, p) =>
+        s + Object.values(p.quiz || {}).filter(q => q.correct).length, 0);
+
+      document.getElementById('stats').innerHTML = `
+        <div class="stat"><div class="value">${totalCompleted}</div><div class="label">Уроков завершено</div></div>
+        <div class="stat"><div class="value">${totalInProgress}</div><div class="label">В процессе</div></div>
+        <div class="stat"><div class="value">${totalTasks}</div><div class="label">Задач решено</div></div>
+        <div class="stat"><div class="value">${totalQuiz}</div><div class="label">Тестов пройдено</div></div>
+      `;
+
+      const wrap = document.getElementById('coursesProgress');
+      wrap.innerHTML = '';
+
+      for (const c of courses) {
+        let idx;
+        try { idx = await content.getLessonsIndex(c.id); }
+        catch { continue; }
+        const lessonIds = idx.lessons.map(l => l.id);
+        const stats = await progress.courseStats(user.id, c.id, lessonIds);
+
+        const el = document.createElement('div');
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="course-progress-header">
+            <div>
+              <h3 class="course-progress-title">${c.icon} ${c.title}</h3>
+              <div class="course-progress-meta">${stats.completed} / ${stats.total} уроков · ${stats.percent}%</div>
+            </div>
+            <a href="./course.html?id=${c.id}" class="btn btn-ghost btn-sm">Открыть</a>
+          </div>
+          <div class="progress"><div style="width:${stats.percent}%"></div></div>
+        `;
+        wrap.appendChild(el);
+      }
+     })();
+  </script>
+
+   <script>
+    if ('serviceWorker' in navigator &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1') {
+      navigator.serviceWorker.register('./service-worker.js?v=5').then(reg => {
+        setInterval(() => reg.update(), 60000);
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'activated' && reg.active) {
+                const refreshing = sessionStorage.getItem('refreshing');
+                if (!refreshing) {
+                  sessionStorage.setItem('refreshing', '1');
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          const refreshing = sessionStorage.getItem('refreshing');
+          if (!refreshing) {
+            sessionStorage.setItem('refreshing', '1');
+            window.location.reload();
+          }
+        });
+      });
+    } else if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        rs.forEach(r => r.unregister());
+      });
+      if (window.caches) {
+        caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+      }
+    }
+   </script>
+</body>
+</html>
+

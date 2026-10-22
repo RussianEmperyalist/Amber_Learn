@@ -1,0 +1,324 @@
+{
+  "id": "javascript-15-json",
+  "title": "JSON: как отправить объект по почте",
+  "goal": "Сериализовать и парсить данные, понимать ограничения JSON, работать с вложенными объектами",
+  "prereq": [
+    "javascript-08-objects"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Попробуй отправить по почте живой торт. Не получится — он испортится, размокнет, развалится. Но можно отправить <b>коробку с описанием торта</b>: рецепт, состав, инструкция по сборке. Получатель прочитает и испечёт такой же торт. <b>JSON</b> — это и есть та самая коробка: он превращает живой объект JavaScript в текстовое описание, которое можно отправить по сети, сохранить в файл, прочитать другим языком. А <code>JSON.parse()</code> — это получатель, который 'распаковывает' описание обратно в объект."
+    },
+    {
+      "type": "text",
+      "content": "<b>JSON</b> (JavaScript Object Notation) — текстовый формат обмена данными, основанный на синтаксисе объектов JavaScript. JSON понимает Python, Java, C++, Go — любой язык. Когда фронтенд запрашивает данные с сервера, сервер <b>не может</b> отправить объект — сеть передаёт только строки. Поэтому объект <b>сериализуется</b> (превращается в строку), отправляется, а на другом конце <b>парсится</b> обратно. Это фундамент всей клиент-серверной разработки."
+    },
+    {
+      "type": "code",
+      "content": "// Объект JavaScript (живой, в памяти)\nconst user = {\n  name: \"Alice\",\n  age: 25,\n  active: true\n};\n\n// Сериализация: объект → строка JSON\nconst json = JSON.stringify(user);\nconsole.log(json);  // '{\"name\":\"Alice\",\"age\":25,\"active\":true}'\nconsole.log(typeof json);  // \"string\" — это ТЕКСТ, не объект!\n\n// Парсинг: строка JSON → объект\nconst parsed = JSON.parse(json);\nconsole.log(parsed.name);  // Alice — снова объект, снова живой!"
+    },
+    {
+      "type": "heading",
+      "content": "JSON.stringify(): объект → строка"
+    },
+    {
+      "type": "text",
+      "content": "<code>JSON.stringify()</code> сериализует данные в текстовое представление. Каждый объект превращается в строку формата <code>{\"ключ\":\"значение\"}</code>. Третий аргумент добавляет отступы — удобно для отладки и вывода в консоль."
+    },
+    {
+      "type": "code",
+      "content": "const data = { name: \"Alice\", age: 25 };\n\n// Минимальный формат (для передачи):\nconsole.log(JSON.stringify(data));\n// '{\"name\":\"Alice\",\"age\":25}'\n\n// С отступами (для чтения):\nconsole.log(JSON.stringify(data, null, 2));\n// {\n//   \"name\": \"Alice\",\n//   \"age\": 25\n// }\n\n// 2 — количество пробелов. Можно и табуляцию: JSON.stringify(data, null, \"\\t\")"
+    },
+    {
+      "type": "predict",
+      "code": "const data = { ok: true };\nconsole.log(JSON.stringify(data));",
+      "question": "Что выведется?",
+      "options": [
+        "[object Object]",
+        "{\"ok\":true}",
+        "\"ok\":true",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "JSON.stringify превращает объект в текстовое представление: {\"ok\":true}. Это строка, а не объект. [object Object] — это console.log(data), а не stringify."
+    },
+    {
+      "type": "heading",
+      "content": "JSON.parse(): строка → объект"
+    },
+    {
+      "type": "text",
+      "content": "<code>JSON.parse()</code> читает текстовое представление JSON и воссоздаёт объект. Это обратная операция. Строка должна быть <b>валидным</b> JSON: двойные кавычки, запятые, фигурные скобки. Ошибка в синтаксисе — и parse выбросит SyntaxError."
+    },
+    {
+      "type": "code",
+      "content": "const json = '{\"name\":\"Bob\",\"age\":30}';\nconst obj = JSON.parse(json);\nconsole.log(obj.name);  // Bob\nconsole.log(obj.age);   // 30\nconsole.log(typeof obj); // \"object\" — снова объект!\n\n// После parse можно работать как с обычным объектом:\nobj.age = 31;\nconsole.log(obj.age);  // 31"
+    },
+    {
+      "type": "heading",
+      "content": "Что поддерживает JSON"
+    },
+    {
+      "type": "text",
+      "content": "JSON поддерживает <b>строки, числа, boolean, null, массивы, объекты</b>. Всё остальное теряется: <code>undefined</code> исчезает из объекта, <code>функции</code> не сериализуются, <code>Date</code> превращается в строку, <code>Symbol</code> и <code>Map</code> игнорируются. Это ограничение формата — 'коробка' не может вместить живой объект, только данные."
+    },
+    {
+      "type": "code",
+      "content": "// JSON поддерживает:\nconst supported = {\n  str: \"hello\",       // строка\n  num: 42,            // число\n  bool: true,         // boolean\n  nothing: null,      // null\n  arr: [1, 2, 3],     // массив\n  nested: { a: 1 }    // объект\n};\nconsole.log(JSON.stringify(supported));  // всё сохранится\n\n// JSON НЕ поддерживает (теряется при stringify):\nconst lost = {\n  undef: undefined,   // исчезнет!\n  func: () => {},     // исчезнет!\n  sym: Symbol(\"x\")    // исчезнет!\n};\nconsole.log(JSON.stringify(lost));  // '{}' — пустой объект!"
+    },
+    {
+      "type": "predict",
+      "code": "const obj = { a: 1, b: undefined, c: function() {} };\nconsole.log(JSON.stringify(obj));",
+      "question": "Что выведется?",
+      "options": [
+        "{\"a\":1,\"b\":undefined,\"c\":function() {}}",
+        "{\"a\":1}",
+        "{}",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "JSON.stringify игнорирует undefined и функции. Останется только {\"a\":1}. Свойства b и c просто исчезнут — это ограничение формата."
+    },
+    {
+      "type": "warning",
+      "content": "<b>JSON.parse() выбрасывает SyntaxError на невалидном JSON.</b> Одинарные кавычки вместо двойных, лишняя запятая, однострочный комментарий — всё это ломает parse. Всегда оборачивай в try/catch: <code>try { const obj = JSON.parse(str); } catch (e) { console.error('Битый JSON!'); }</code>. Без try/catch битая строка от API уронит всю программу."
+    },
+    {
+      "type": "code",
+      "content": "// Безопасный парсинг через try/catch\nfunction safeParse(text) {\n  try {\n    return JSON.parse(text);\n  } catch (e) {\n    // JSON невалидный — возвращаем null вместо падения\n    console.error(\"Невалидный JSON:\", e.message);\n    return null;\n  }\n}\n\nconsole.log(safeParse('{\"name\":\"Alice\"}'));  // { name: \"Alice\" }\nconsole.log(safeParse(\"{bad json}\"));         // null — без падения!"
+    },
+    {
+      "type": "heading",
+      "content": "Вложенные объекты"
+    },
+    {
+      "type": "text",
+      "content": "JSON отлично работает с вложенными структурами — объект внутри объекта, массив объектов. Это стандартный формат ответа от API. Доступ к вложенным свойствам — цепочкой точек или через optional chaining."
+    },
+    {
+      "type": "code",
+      "content": "// Типичный ответ API\nconst json = '{\"user\":{\"name\":\"Alice\",\"address\":{\"city\":\"Moscow\"}}}'\nconst data = JSON.parse(json);\n\n// Доступ через цепочку точек:\nconsole.log(data.user.address.city);  // Moscow\n\n// Безопасный доступ через optional chaining:\nconsole.log(data.user?.phone?.number);  // undefined — без ошибки\n\n// Обратная сериализация с отступами:\nconsole.log(JSON.stringify(data, null, 2));"
+    },
+    {
+      "type": "heading",
+      "content": "Массив объектов в JSON"
+    },
+    {
+      "type": "text",
+      "content": "API почти всегда возвращает <b>массив объектов</b>: список пользователей, товаров, постов. После parse это обычный массив — можно .map(), .filter(), .forEach(). Это самый частый тип данных в веб-разработке."
+    },
+    {
+      "type": "code",
+      "content": "// Ответ API: массив пользователей\nconst json = '[{\"id\":1,\"name\":\"Alice\"},{\"id\":2,\"name\":\"Bob\"}]';\nconst users = JSON.parse(json);\n\nconsole.log(Array.isArray(users));  // true — это массив\n\n// Работаем как с обычным массивом:\nconsole.log(users[0].name);  // Alice\n\n// Фильтруем и маппим:\nconst names = users.filter(u => u.id > 1).map(u => u.name);\nconsole.log(names);  // [\"Bob\"]"
+    },
+    {
+      "type": "heading",
+      "content": "Цикл: stringify → send → receive → parse"
+    },
+    {
+      "type": "text",
+      "content": "В реальном приложении данные проходят цикл: объект → stringify (упаковка) → сеть (HTTP) → receive → parse (распаковка) → объект. Ты управляешь обеими сторонами: на сервере сериализуешь, на клиенте парсишь. Понимание этого цикла — ключ к работе с API."
+    },
+    {
+      "type": "code",
+      "content": "// Симуляция цикла клиент-сервер:\n// 1. Клиент создаёт объект\nconst request = { action: \"login\", user: \"alice\" };\n\n// 2. Сериализация для отправки\nconst serialized = JSON.stringify(request);\nconsole.log(serialized);  // '{\"action\":\"login\",\"user\":\"alice\"}'\n\n// 3. Передача по сети (симуляция строковой переменной)\nconst networkData = serialized;  // сеть передаёт только строку\n\n// 4. На сервере — парсинг\nconst received = JSON.parse(networkData);\nconsole.log(received.user);  // alice"
+    },
+    {
+      "type": "tip",
+      "content": "JSON.stringify(obj, null, 2) — с отступами в 2 пробела. Используй для отладки и вывода в консоль, но НЕ для передачи данных (лишние пробелы = лишний трафик)."
+    },
+    {
+      "type": "heading",
+      "content": "JSON vs JavaScript объект: не путай!"
+    },
+    {
+      "type": "text",
+      "content": "JSON — это строка. Объект JS — структура в памяти. У JSON-строки нет методов, нельзя обратиться к свойству: <code>'{\"name\":\"Alice\"}'.name</code> — это undefined. Нужно сначала parse. И наоборот: у объекта нет свойства 'JSON-представление' — нужно stringify."
+    },
+    {
+      "type": "code",
+      "content": "// JSON — это строка\nconst json = '{\"name\":\"Alice\"}';\nconsole.log(typeof json);  // \"string\"\nconsole.log(json.name);    // undefined — у строки нет свойства name!\n\n// Объект — это структура\nconst obj = { name: \"Alice\" };\nconsole.log(typeof obj);   // \"object\"\nconsole.log(obj.name);     // \"Alice\" — работает!\n\n// Нужен parse чтобы превратить строку в объект:\nconst parsed = JSON.parse(json);\nconsole.log(parsed.name);  // \"Alice\" — теперь работает"
+    },
+    {
+      "type": "note",
+      "content": "JSON — это подмножество JavaScript-синтаксиса. У JSON более строгие правила: ключи всегда в двойных кавычках, значения только простых типов, не допускаются комментарии и trailing запятые."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай объект person = { name: \"Amber\", age: 25 }. Преврати в JSON через JSON.stringify и выведи (ожидаемый вывод: {\"name\":\"Amber\",\"age\":25})",
+      "starter": "const person = { name: \"Amber\", age: 25 };\n// console.log(JSON.stringify(person));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.stringify",
+          "message": "Используй JSON.stringify()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "{\"name\":\"Amber\",\"age\":25}",
+          "message": "JSON.stringify(obj)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const obj = { name: \"Amber\", age: 25 };\nconsole.log(JSON.stringify(obj));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Распарсь строку '{\"name\":\"Amber\",\"age\":25}' через JSON.parse. Выведи obj.name и obj.age (ожидаемый вывод: Amber 25)",
+      "starter": "const json = '{\"name\":\"Amber\",\"age\":25}';\n// const obj = JSON.parse(json);\n// console.log(obj.name, obj.age);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.parse",
+          "message": "Используй JSON.parse()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber 25",
+          "message": "JSON.parse(obj).name, .age"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const json = '{\"name\":\"Amber\",\"age\":25}';\nconst obj = JSON.parse(json);\nconsole.log(obj.name, obj.age);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай массив arr = [1, 2, 3]. Преврати его в JSON через JSON.stringify и выведи результат (ожидаемый вывод: [1,2,3])",
+      "starter": "const arr = [1, 2, 3];\n// console.log(JSON.stringify(arr));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.stringify",
+          "message": "Используй JSON.stringify()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "[1,2,3]",
+          "message": "JSON.stringify([1,2,3])"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const arr = [1, 2, 3];\nconsole.log(JSON.stringify(arr));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент передаёт объект в JSON.parse вместо строки. Получается TypeError. Исправь: объект нужно сначала превратить в строку через JSON.stringify.",
+      "starter": "const data = { name: \"Bob\" };\nconst obj = JSON.parse(data);\nconsole.log(obj.name);",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.stringify",
+          "message": "Используй JSON.stringify()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "JSON.includes(\"user\") = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const nested = { user: { name: \"A\" } };\nconsole.log(JSON.stringify(nested).includes(\"user\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Дан массив объектов [{ id: 1, name: \"A\" }, { id: 2, name: \"B\" }]. Преврати в JSON-строку, затем распарсь обратно и выведи имя второго элемента (B)",
+      "starter": "// const users = [{ id: 1, name: \"A\" }, { id: 2, name: \"B\" }];\n// const json = JSON.stringify(users);\n// const parsed = JSON.parse(json);\n// console.log(parsed[1].name);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.parse",
+          "message": "Используй JSON.parse()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "3 ключа в parsed объекте"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const json = '{\"a\":1,\"b\":2,\"c\":3}';\nconst obj = JSON.parse(json);\nconsole.log(Object.keys(obj).length);"
+    }
+  ],
+  "recap": [
+    "JSON — текстовый формат обмена данными, 'упаковочная коробка' для объектов.",
+    "JSON.stringify(obj) — сериализация: объект → строка.",
+    "JSON.parse(str) — парсинг: строка → объект. Требует валидный JSON.",
+    "JSON поддерживает: строки, числа, boolean, null, массивы, объекты.",
+    "JSON НЕ поддерживает: undefined, функции, Date, Symbol, Map.",
+    "JSON.parse на невалидном JSON выбрасывает SyntaxError — нужен try/catch."
+  ],
+  "quiz": [
+    {
+      "q": "Что возвращает JSON.stringify?",
+      "options": [
+        "Объект",
+        "Строку",
+        "Массив",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "JSON.stringify сериализует данные в строку."
+    },
+    {
+      "q": "Что произойдёт с JSON.parse('bad')?",
+      "options": [
+        "Вернёт undefined",
+        "Вернёт null",
+        "Выбросит SyntaxError",
+        "Вернёт false"
+      ],
+      "answer": 2,
+      "explain": "На невалидном JSON parse выбрасывает SyntaxError — нужен try/catch."
+    },
+    {
+      "q": "Какие типы НЕ поддерживаются в JSON?",
+      "options": [
+        "Массивы и объекты",
+        "undefined, функции, Date",
+        "Числа и строки",
+        "null и boolean"
+      ],
+      "answer": 1,
+      "explain": "JSON не умеет undefined, функции, Date, Symbol, Map — они теряются при stringify."
+    }
+  ]
+}

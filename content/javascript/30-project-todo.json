@@ -1,0 +1,361 @@
+{
+  "id": "javascript-30-project-todo",
+  "title": "Финальный проект: To-Do List",
+  "goal": "Собрать полноценное приложение с массивом объектов, функциями CRUD и перерисовкой",
+  "prereq": [
+    "javascript-26-dom-basics",
+    "javascript-27-events",
+    "javascript-28-forms",
+    "javascript-29-project-calc"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "To-Do List — <b>самое популярное приложение для обучения</b> веб-разработке. Не потому что оно простое, а потому что содержит <b>все основные паттерны</b>: добавление, удаление, изменение, фильтрация, сохранение. Если ты можешь сделать To-Do List — ты можешь сделать <b>что угодно</b> в вебе. Это приложение — твой рывок от 'знаю синтаксис' к 'могу строить программы'."
+    },
+    {
+      "type": "text",
+      "content": "<b>Архитектура To-Do</b>: состояние (массив объектов), функции работы с состоянием (CRUD), отрисовка (DOM). Данные живут в JavaScript, интерфейс — зеркало данных. Изменил данные → перерисовал интерфейс. Это паттерн <b>Model-View</b>: данные (Model) отдельно, отображение (View) отдельно."
+    },
+    {
+      "type": "code",
+      "content": "// Состояние — массив задач\nlet todos = [\n  { id: 1, text: \"Научиться JS\", done: true },\n  { id: 2, text: \"Собрать калькулятор\", done: false },\n  { id: 3, text: \"Собрать To-Do List\", done: false }\n];\n\n// Ключевые операции:\n// 1. Добавить задачу: todos.push()\n// 2. Удалить задачу: todos.filter()\n// 3. Переключить статус: todos.map()\n// 4. Отрисовать: функция, которая строит HTML из todos"
+    },
+    {
+      "type": "heading",
+      "content": "CRUD: Create, Read, Update, Delete"
+    },
+    {
+      "type": "text",
+      "content": "Любое приложение с данными — это CRUD. <b>Create</b> — добавить, <b>Read</b> — показать, <b>Update</b> — изменить, <b>Delete</b> — удалить. В To-Do List: добавление задачи, вывод списка, переключение done, удаление по ID."
+    },
+    {
+      "type": "code",
+      "content": "// Create — добавить задачу\nfunction addTodo(text) {\n  todos.push({\n    id: Date.now(),  // уникальный ID\n    text: text,\n    done: false\n  });\n}\n\n// Read — получить все задачи\nfunction getAllTodos() {\n  return todos;\n}\n\n// Update — переключить статус\nfunction toggleTodo(id) {\n  todos = todos.map(todo =>\n    todo.id === id ? { ...todo, done: !todo.done } : todo\n  );\n}\n\n// Delete — удалить по ID\nfunction deleteTodo(id) {\n  todos = todos.filter(todo => todo.id !== id);\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Отрисовка: данные → DOM"
+    },
+    {
+      "type": "text",
+      "content": "Функция отрисовки <b>перезаписывает</b> содержимое контейнера на основе текущего состояния. Это неэффективно для больших списков, но идеально для обучения. В реальных фреймворках (React, Vue) это делается через Virtual DOM."
+    },
+    {
+      "type": "code",
+      "content": "function renderTodos() {\n  const container = document.querySelector(\"#todo-list\");\n  container.innerHTML = \"\";  // очищаем старую отрисовку\n\n  for (const todo of todos) {\n    // Создаём элемент\n    const li = document.createElement(\"li\");\n    li.className = todo.done ? \"done\" : \"\";\n\n    // Текст задачи\n    const span = document.createElement(\"span\");\n    span.textContent = todo.text;\n    li.appendChild(span);\n\n    // Кнопка удаления\n    const btn = document.createElement(\"button\");\n    btn.textContent = \"X\";\n    btn.addEventListener(\"click\", () => deleteTodo(todo.id));\n    li.appendChild(btn);\n\n    container.appendChild(li);\n  }\n}"
+    },
+    {
+      "type": "predict",
+      "code": "let todos = [\n  { id: 1, text: \"A\", done: false },\n  { id: 2, text: \"B\", done: true }\n];\n\nconst filtered = todos.filter(t => !t.done);\nconsole.log(filtered.length);",
+      "question": "Что выведется?",
+      "options": [
+        "2",
+        "1",
+        "0",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "filter с !t.done оставляет только НЕ выполненные задачи. Только одна задача (id=1) с done=false → длина массива = 1."
+    },
+    {
+      "type": "heading",
+      "content": "Мутирование состояния"
+    },
+    {
+      "type": "text",
+      "content": "<b>Важное правило:</b> после изменения массива todos нужно вызвать <b>renderTodos()</b>. Если изменил данные, но не перерисовал — интерфейс показывает устаревшую информацию. Это самая частая ошибка: забыл вызвать функцию отрисовки после изменения состояния."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: изменили данные, но не перерисовали!\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  // забыли renderTodos()!\n}\n\n// ПРАВИЛЬНО: после каждого изменения — перерисовка\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  renderTodos();  // обновляем интерфейс\n}"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Не мутируй массив напрямую через присваивание!</b> <code>todos = [...]</code> создаёт новый массив. Если использовать <code>todos.length = 0</code> — мутируешь существующий. Это создаёт баги, если другие части кода хранят ссылку на старый массив. Всегда создавай новый массив через map/filter/spread."
+    },
+    {
+      "type": "code",
+      "content": "// ПЛОХО: мутация существующего массива\nfunction clearAll() {\n  todos.length = 0;  // мутируем!\n  renderTodos();\n}\n\n// ХОРОШО: создаём новый массив\nfunction clearAll() {\n  todos = [];  // новый массив\n  renderTodos();\n}\n\n// ИЛИ: через filter\nfunction deleteDone() {\n  todos = todos.filter(t => !t.done);  // новый массив\n  renderTodos();\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Фильтрация: показать все / активные / выполненные"
+    },
+    {
+      "type": "text",
+      "content": "Фильтрация — это выбор подмножества задач для отображения. Не изменяет массив todos, а создаёт временное подмножество для отрисовки. Полезно для больших списков: показать только выполненные, только активные."
+    },
+    {
+      "type": "code",
+      "content": "function renderTodos(filter) {\n  const container = document.querySelector(\"#todo-list\");\n  container.innerHTML = \"\";\n\n  let list = todos;\n  if (filter === \"active\") {\n    list = todos.filter(t => !t.done);\n  } else if (filter === \"done\") {\n    list = todos.filter(t => t.done);\n  }\n\n  for (const todo of list) {\n    const li = document.createElement(\"li\");\n    li.className = todo.done ? \"done\" : \"\";\n    li.textContent = todo.text;\n    container.appendChild(li);\n  }\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Обработка событий"
+    },
+    {
+      "type": "text",
+      "content": "Обработчики событий вызывают CRUD-функции при действиях пользователя: submit формы — addTodo, click на кнопку — deleteTodo, click на текст — toggleTodo. Каждый обработчик — одна строка, связывающая действие с логикой."
+    },
+    {
+      "type": "code",
+      "content": "// Обработчик: добавление задачи\nconst form = document.querySelector(\"#todo-form\");\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();\n  const input = document.querySelector(\"#todo-input\");\n  const text = input.value.trim();\n  if (text) {\n    addTodo(text);\n    input.value = \"\";  // очищаем поле\n  }\n});\n\n// Обработчик: удаление задачи\nlist.addEventListener(\"click\", (event) => {\n  const btn = event.target.closest(\"button\");\n  if (btn) {\n    const id = Number(btn.dataset.id);\n    deleteTodo(id);\n  }\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Счётчик задач"
+    },
+    {
+      "type": "text",
+      "content": "Полезно показывать пользователю: сколько всего задач, сколько выполнено. Это <b>вычисляемое свойство</b> — пересчитывается при каждом изменении массива. Используем filter и length."
+    },
+    {
+      "type": "code",
+      "content": "function updateCounter() {\n  const total = todos.length;\n  const done = todos.filter(t => t.done).length;\n  const active = total - done;\n\n  document.querySelector(\"#total\").textContent = `Всего: ${total}`;\n  document.querySelector(\"#done\").textContent = `Выполнено: ${done}`;\n  document.querySelector(\"#active\").textContent = `Активных: ${active}`;\n}\n\n// Вызываем после каждой операции:\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  renderTodos();\n  updateCounter();\n}"
+    },
+    {
+      "type": "predict",
+      "code": "let todos = [\n  { id: 1, text: \"A\", done: true },\n  { id: 2, text: \"B\", done: false },\n  { id: 3, text: \"C\", done: true }\n];\n\nconsole.log(todos.filter(t => !t.done).length);\nconsole.log(todos.filter(t => t.done).length);",
+      "question": "Что выведется?",
+      "options": [
+        "1 и 2",
+        "2 и 1",
+        "0 и 3",
+        "3 и 0"
+      ],
+      "answer": 0,
+      "explain": "Не выполненные: 1 (только B). Выполненные: 2 (A и C). filter + !t.done / t.done."
+    },
+    {
+      "type": "heading",
+      "content": "Удаление и переключение"
+    },
+    {
+      "type": "text",
+      "content": "Удаление — filter по ID. Переключение — map с изменением done. Оба создают новый массив. Никогда не используй splice — он мутирует существующий массив и создаёт баги."
+    },
+    {
+      "type": "code",
+      "content": "// Удаление — filter по ID\nfunction deleteTodo(id) {\n  todos = todos.filter(t => t.id !== id);\n  renderTodos();\n}\n\n// Переключение — map с изменением done\nfunction toggleTodo(id) {\n  todos = todos.map(t =>\n    t.id === id ? { ...t, done: !t.done } : t\n  );\n  renderTodos();\n}\n\n// spread { ...t, done: !t.done } — создаёт НОВЫЙ объект\n// Старый объект остаётся неизменным — это иммутабельное обновление"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>...spread</code> для иммутабельного обновления объектов: <code>{ ...todo, done: !todo.done }</code>. Создаёт новый объект с изменённым свойством, старый остаётся без изменений. Это делает данные предсказуемыми и упрощает отладку."
+    },
+    {
+      "type": "heading",
+      "content": "Сохранение в localStorage"
+    },
+    {
+      "type": "text",
+      "content": "localStorage — хранилище браузера, которое переживает перезагрузку. Сохраняй массив todos как JSON-строку. При загрузке страницы — читай и парси. Это делает приложение <b>полезным</b>: задачи не пропадают при закрытии вкладки."
+    },
+    {
+      "type": "code",
+      "content": "// Загрузка при старте\nfunction loadTodos() {\n  const saved = localStorage.getItem(\"todos\");\n  if (saved) {\n    todos = JSON.parse(saved);\n  }\n}\n\n// Сохранение после каждого изменения\nfunction saveTodos() {\n  localStorage.setItem(\"todos\", JSON.stringify(todos));\n}\n\n// Вызываем после каждой операции:\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n  renderTodos();\n  saveTodos();  // сохраняем!\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Полная архитектура"
+    },
+    {
+      "type": "text",
+      "content": "Полный To-Do List строится из 4 слоёв: <b>State</b> (массив todos), <b>Actions</b> (add/delete/toggle), <b>View</b> (render), <b>Events</b> (обработчики). Каждый слой знает только о соседних. Это делает код чистым и расширяемым."
+    },
+    {
+      "type": "code",
+      "content": "// 1. State\nlet todos = [];\n\n// 2. Actions\nfunction addTodo(text) {\n  todos.push({ id: Date.now(), text, done: false });\n}\nfunction deleteTodo(id) {\n  todos = todos.filter(t => t.id !== id);\n}\n\n// 3. View\nfunction renderTodos() {\n  const list = document.querySelector(\"#todo-list\");\n  list.innerHTML = \"\";\n  for (const t of todos) {\n    const li = document.createElement(\"li\");\n    li.textContent = t.text;\n    list.appendChild(li);\n  }\n}\n\n// 4. Events\nform.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  addTodo(input.value.trim());\n  renderTodos();\n});"
+    },
+    {
+      "type": "note",
+      "content": "To-Do List — это мост между учебными примерами и реальными приложениями. Ты использовал: массивы, объекты, функции, классы, события, DOM, localStorage. Это все инструменты, которые нужны для создания веб-приложений."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай пустой массив tasks. Добавь одну задачу через push() и выведи tasks.length (ожидаемый вывод: 1)",
+      "starter": "let tasks = [];\n// tasks.push({ text: \"Учить JS\", done: false });\n// console.log(tasks.length);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.push\\(",
+          "message": "Используй push()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1",
+          "message": "tasks.length = 1"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "let tasks = [];\ntasks.push({ text: \"Учить JS\", done: false });\nconsole.log(tasks.length);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай массив tasks из одного элемента {text:'A', done:false}, выполни filter(t => !t.done) и выведи длину (ожидаемый вывод: 1)",
+      "starter": "// let tasks = [{ text: \"A\", done: false }];\n// tasks = tasks.filter(t => !t.done);\n// console.log(tasks.length);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.filter\\(",
+          "message": "Используй filter()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1",
+          "message": "tasks.length = 1 (осталась незавершённая)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "let tasks = [{ text: \"A\", done: false }];\ntasks = tasks.filter(t => !t.done);\nconsole.log(tasks.length);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай массив todos, выполни map и переключи done первого элемента. Выведи todos[0].done (ожидаемый вывод: true)",
+      "starter": "let todos = [\n  { id: 1, text: \"A\", done: false }\n];\n// todos = todos.map(t => t.id === 1 ? { ...t, done: !t.done } : t);\n// console.log(todos[0].done);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.done\\s*=",
+          "message": "Обнови свойство done"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "tasks[0].done = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "let tasks = [{ text: \"A\", done: false }];\ntasks[0].done = true;\nconsole.log(tasks[0].done);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай массив tasks. Добавь задачи через push (включая 'Learn') и проверь JSON.stringify(tasks).includes('Learn') (ожидаемый вывод: true)",
+      "starter": "let tasks = [];\ntasks.push({ text: \"Learn\", done: false });\ntasks.push({ text: \"Practice\", done: false });\ntasks.push({ text: \"Build\", done: false });\n// console.log(JSON.stringify(tasks).includes(\"Learn\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.push\\(",
+          "message": "Используй push() дважды"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.includes",
+          "message": "Используй includes()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "JSON.stringify(tasks).includes(\"Learn\")"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "let tasks = [];\ntasks.push({ text: \"Learn\", done: false });\ntasks.push({ text: \"Practice\", done: false });\ntasks.push({ text: \"Build\", done: false });\nconsole.log(JSON.stringify(tasks).includes(\"Learn\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай массив tasks с одной задачей { text: 'A' }. Выполни JSON.stringify → JSON.parse и выведи loaded[0].text (ожидаемый вывод: A)",
+      "starter": "let tasks = [{ text: \"A\", done: false }];\n// const json = JSON.stringify(tasks);\n// const loaded = JSON.parse(json);\n// console.log(loaded[0].text);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.stringify",
+          "message": "Используй JSON.stringify()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "JSON\\.parse",
+          "message": "Используй JSON.parse()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "A",
+          "message": "JSON.parse([\"{text:A}\"])[0].text = \"A\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "let tasks = [{ text: \"A\", done: false }];\nconst json = JSON.stringify(tasks);\nconst loaded = JSON.parse(json);\nconsole.log(loaded[0].text);"
+    }
+  ],
+  "recap": [
+    "State: массив объектов todos — единственное место данных.",
+    "Actions: addTodo, deleteTodo, toggleTodo — CRUD-операции.",
+    "View: renderTodos — функция, которая перерисовывает DOM.",
+    "Events: обработчики вызывают Actions → View.",
+    "После изменения данных ВСЕГДА вызывай renderTodos().",
+    "Используй filter + spread для иммутабельного обновления."
+  ],
+  "quiz": [
+    {
+      "q": "Что произойдёт, если забыть вызвать renderTodos() после изменения данных?",
+      "options": [
+        "Ничего",
+        "Интерфейс не обновится",
+        "Массив удалится",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Данные изменились, но интерфейс показывает старое состояние. Нужно вызывать renderTodos()."
+    },
+    {
+      "q": "Как безопасно удалить задачу из массива?",
+      "options": [
+        "splice(id)",
+        "filter(t => t.id !== id)",
+        "delete todos[id]",
+        "shift()"
+      ],
+      "answer": 1,
+      "explain": "filter создаёт новый массив без удалённого элемента — иммутабельно и безопасно."
+    },
+    {
+      "q": "Как сохранить todos в localStorage?",
+      "options": [
+        "localStorage.setItem(todos)",
+        "localStorage.setItem('todos', JSON.stringify(todos))",
+        "localStorage.save(todos)",
+        "Нельзя"
+      ],
+      "answer": 1,
+      "explain": "localStorage хранит только строки — JSON.stringify(todos) конвертирует массив в строку."
+    }
+  ]
+}

@@ -1,0 +1,322 @@
+{
+  "id": "javascript-05-if-else",
+  "title": "Условия: если, иначе, тернарный оператор и ложные значения",
+  "goal": "Понять if/else, тернарный оператор, switch и главное — что такое falsy и почему это ломает логику",
+  "prereq": [
+    "javascript-04-strings"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты написал проверку: <code>if (user.age)</code> для 'если возраст указан'. Всё работает, пока пользователь не вводит 0 как возраст ребёнка. <code>if (0)</code> ложно, и код решает 'возраст не указан'. Это не баг JS, а правило: в JavaScript <b>ровно 7 falsy-значений</b>, и 0 — одно из них. Если этого не знать, программа будет принимать 0 как 'отсутствующее значение', а реальный пользователь с возрастом 0 лет — младенец — окажется в 'не указан'. В этом уроке ты научишься отличать 'пусто' от 'ноль'."
+    },
+    {
+      "type": "text",
+      "content": "<b>Условие</b> — это конструкция, которая направляет выполнение кода по разным ветвям. JavaScript проверяет условие и решает: выполнить блок if или перейти к else. Это основа любого алгоритма — фильтровать, сортировать, валидировать, принимать решения. Без условий программа была бы линейным рецептом: от строки к строке, без раздумий."
+    },
+    {
+      "type": "heading",
+      "content": "if / else if / else — дерево решений"
+    },
+    {
+      "type": "text",
+      "content": "Конструкция <code>if</code> читается как естественный язык: 'если условие истинно — выполни блок, иначе если (else if) — проверь другое условие, иначе (else) — возьми этот блок'. Блоки else if можно добавлять сколько угодно — это цепочка проверок сверху вниз. Выполняется <b>первый</b> блок, чьё условие истинно. Если ни одно условие не подошло — блок else."
+    },
+    {
+      "type": "code",
+      "content": "const temperature = 25;\n\nif (temperature > 30) {\n  console.log(\"Жарко!\");        // не выполнится\n} else if (temperature > 20) {\n  console.log(\"Тепло\");         // выполнится — 25 > 20\n} else if (temperature > 10) {\n  console.log(\"Холодно\");\n} else {\n  console.log(\"Очень холодно\");\n}\n\n// Порядок else if ВАЖЕН: условия проверяются сверху вниз,\n// и выполняется ТОЛЬКО первый подходящий блок."
+    },
+    {
+      "type": "tip",
+      "content": "Читай код с условиями как инструкцию: 'если температура > 30, скажи Жарко, иначе если > 20, скажи Тепло'. Если порядок else if перепутан (например, сначала <code>temperature > 10</code>, потом <code>> 30</code>), то 35 попадёт в 'Холодно'. Всегда проверяй порядок: от самого частного условия к самому общему."
+    },
+    {
+      "type": "heading",
+      "content": "Тернарный оператор: if/else в одну строку"
+    },
+    {
+      "type": "text",
+      "content": "Тернарный оператор — это сокращённая форма <code>if/else</code> для простых случаев: <code>условие ? значениеЕслиTrue : значениеЕслиFalse</code>. Он не создаёт блок кода, а <b>возвращает значение</b>, поэтому его удобно использовать при присваивании. Но длинную цепочку тернарников лучше не строить — это ухудшает читаемость. Сложная логика — в if/else."
+    },
+    {
+      "type": "code",
+      "content": "const age = 20;\nconst status = age >= 18 ? \"совершеннолетний\" : \"несовершеннолетний\";\nconsole.log(status);  // совершеннолетний\n\n// То же самое через if/else (объёмнее):\nlet status2;\nif (age >= 18) {\n  status2 = \"совершеннолетний\";\n} else {\n  status2 = \"несовершеннолетний\";\n}\n\n// Тернарный можно вкладывать, но не делай этого:\n// age >= 18 ? (age >= 65 ? \"пенсионер\" : \"взрослый\") : \"ребёнок\";\n// Читаемость падает — используй if/else."
+    },
+    {
+      "type": "heading",
+      "content": "switch: множественный выбор"
+    },
+    {
+      "type": "text",
+      "content": "Когда нужно сравнить одну переменную с <b>множеством конкретных значений</b>, switch читаемее, чем цепочка else if. Он проверяет точное совпадение с каждым case и 'проваливается' (fall-through) вниз, пока не встретит break. Без break выполнение 'протечёт' в следующий case — это иногда полезно, но чаще ломает логику."
+    },
+    {
+      "type": "code",
+      "content": "const day = \"Monday\";\n\nswitch (day) {\n  case \"Monday\":\n  case \"Tuesday\":\n  case \"Wednesday\":\n  case \"Thursday\":\n  case \"Friday\":\n    console.log(\"Рабочий день\");\n    break;  // без break протечёт в следующий case!\n  case \"Saturday\":\n  case \"Sunday\":\n    console.log(\"Выходной\");\n    break;\n  default:\n    console.log(\"Неизвестный день\");\n}\n\n// break — это 'стоп': если его нет, выполнение продолжится\n// в следующий case. Смысл 'протекания': несколько case\n// с одинаковым результатом можно объединить в одну ветку."
+    },
+    {
+      "type": "predict",
+      "code": "const day = \"Monday\";\nswitch (day) {\n  case \"Monday\":\n    console.log(\"пн\");\n  case \"Tuesday\":\n    console.log(\"вт\");\n}\nconsole.log(\"конец\");",
+      "question": "Что выведет этот код?",
+      "options": [
+        "пн, конец",
+        "пн, вт, конец",
+        "вт, конец",
+        "конец"
+      ],
+      "answer": 1,
+      "explain": "Нет break после case \"Monday\", поэтому выполнение 'протечёт' в case \"Tuesday\" и выполнит 'вт'. Без break switch ведёт себя как последовательный код — это частый источник багов."
+    },
+    {
+      "type": "heading",
+      "content": "Falsy-значения: семь пустот"
+    },
+    {
+      "type": "text",
+      "content": "В JavaScript есть ровно <b>семь falsy-значений</b>. Все остальные значения — truthy. Когда условие в <code>if (значение)</code> проверяется, JavaScript автоматически преобразует значение к boolean. Эти семь значений превратятся в false, остальные — в true. Запомни их: это не академическое знание, а ежедневный инструмент отладки."
+    },
+    {
+      "type": "code",
+      "content": "// Семь falsy-значений:\nconsole.log(Boolean(false));   // false\nconsole.log(Boolean(0));       // false\nconsole.log(Boolean(\"\"));      // false — пустая строка\nconsole.log(Boolean(null));    // false\nconsole.log(Boolean(undefined)); // false\nconsole.log(Boolean(NaN));     // false\nconsole.log(Boolean(false));   // false\n\n// Остальные — truthy:\nconsole.log(Boolean(\"hello\")); // true\nconsole.log(Boolean(42));      // true\nconsole.log(Boolean([]));      // true — массив! даже пустой!\nconsole.log(Boolean({}));      // true — объект! даже пустой!"
+    },
+    {
+      "type": "predict",
+      "code": "if (0) {\n  console.log(\"yes\");\n} else {\n  console.log(\"no\");\n}",
+      "question": "Что выведет этот код?",
+      "options": [
+        "yes",
+        "no",
+        "Ошибка",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "0 — falsy-значение. Условие if(0) ложно, поэтому выполняется else и выводится 'no'. Это ловушка: новичок ожидает, что 0 — 'нормальное число', а не 'ложь'."
+    },
+    {
+      "type": "warning",
+      "content": "Пустой массив <code>[]</code> и пустой объект <code>{}</code> — <b>truthy</b>. Это значит: <code>if ([])</code> выполнится, а <code>if (null)</code> — нет. Невозможно проверить 'пустой массив' через <code>if (arr)</code>, потому что пустой массив truthy. Правильно: <code>if (arr.length === 0)</code>. То же для объекта: <code>if (obj)</code> не проверяет 'пустой' ли он."
+    },
+    {
+      "type": "heading",
+      "content": "Осторожно: 'ложные' правды"
+    },
+    {
+      "type": "text",
+      "content": "Некоторые значения кажутся пустыми, но на самом деле <b>truthy</b>. Строка \"0\" — это не число 0, а текст '0'. Строка \"false\" — это не boolean false, а текст 'false'. Эти ловушки прячутся в пользовательском вводе: поле 'возраст' вернёт строку \"0\", которая truthy. Всегда проверяй тип, прежде чем использовать значение в условии."
+    },
+    {
+      "type": "code",
+      "content": "console.log(Boolean(\"0\"));      // true — это строка, не число 0\nconsole.log(Boolean(\"false\"));  // true — это строка 'false', не boolean\nconsole.log(Boolean(\" \"));      // true — пробел — не пустая строка!\nconsole.log(Boolean(0));        // false — а вот это число ноль\nconsole.log(Boolean(\"\"));       // false — пустая строка\n\n// Пример бага: пользователь ввёл '0' в поле ввода:\nconst input = \"0\";\nif (input) {  // true! потому что \"0\" — строка, не пустая\n  console.log(\"Введено значение\");\n}\n// Правильно: if (input.trim() !== \"\") — проверь, не пробел ли"
+    },
+    {
+      "type": "predict",
+      "code": "console.log(!!\"Amber\");\nconsole.log(!!\"\");\nconsole.log(!!null);",
+      "question": "Какой вывод этого кода?",
+      "options": [
+        "true, false, false",
+        "false, false, false",
+        "true, true, true",
+        "true, false, true"
+      ],
+      "answer": 0,
+      "explain": "!! — это 'двойное не', которое преобразует к boolean. \"Amber\" → true, \"\" → false, null → false. Двойное не — быстрый способ 'увидеть' truthy/falsy значения."
+    },
+    {
+      "type": "heading",
+      "content": "Проверка 'не пустое ли значение' правильно"
+    },
+    {
+      "type": "text",
+      "content": "Если тебе нужно проверить 'есть ли значение' (не пустая строка, не null, не undefined), используй строгую проверку: <code>value !== null && value !== undefined && value !== \"\"</code>. Или проще: <code>value != null && value !== \"\"</code> — проверка <code>value != null</code> ловит и null, и undefined сразу (не строгий ==, но это единственный допустимый случай)."
+    },
+    {
+      "type": "code",
+      "content": "function isEmpty(value) {\n  // Проверяет: не null, не undefined, не пустая строка\n  if (value != null && value !== \"\") {\n    return false;  // есть значение\n  }\n  return true;  // пусто\n}\n\nconsole.log(isEmpty(\"\"));    // true\nconsole.log(isEmpty(\"0\"));   // false — строка \"0\" не пустая\nconsole.log(isEmpty(0));     // true — 0 не входит в проверку\nconsole.log(isEmpty(null));  // true"
+    },
+    {
+      "type": "note",
+      "content": "Иногда вместо полной проверки используют <code>Boolean(value) !== false</code> или <code>value</code> напрямую, но это зависит от контекста. Если '0' — это валидное значение, <code>if (value)</code> его пропустит. Если '0' — невалидное, то <code>if (value)</code> сработает правильно. Всегда думай: что для тебя значит 'пусто'?"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай константу x = 10. Если x > 5 — выведи 'yes', иначе 'no'. Используй if/else (ожидаемый вывод: yes)",
+      "starter": "const x = 10;\n// if (x > 5) console.log(\"yes\"); else console.log(\"no\");\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bif\\s*\\(",
+          "message": "Используй if/else"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\belse\\b",
+          "message": "Добавь else"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "yes",
+          "message": "10 > 5 → \"yes\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const x = 10;\nif (x > 5) console.log(\"yes\");\nelse console.log(\"no\");"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай константу age = 18. Если age >= 18 — выведи 'взрослый', иначе 'ребёнок' (ожидаемый вывод: взрослый)",
+      "starter": "const age = 18;\n// if (age >= 18) console.log(\"взрослый\"); else console.log(\"ребёнок\");\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": ">=\\s*18",
+          "message": "Проверь условие age >= 18"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "взрослый",
+          "message": "age >= 18 → \"взрослый\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const age = 18;\nif (age >= 18) console.log(\"взрослый\");\nelse console.log(\"ребёнок\");"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай константу score = 85. Выведи 'A' если score >= 90, 'B' если score >= 70, иначе 'C' (ожидаемый вывод: B)",
+      "starter": "const score = 85;\n// if (score >= 90) console.log(\"A\"); else if (score >= 70) console.log(\"B\"); else console.log(\"C\");\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "else\\s+if",
+          "message": "Используй else if"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "B",
+          "message": "85 >= 70 → B"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const score = 85;\nif (score >= 90) console.log(\"A\");\nelse if (score >= 70) console.log(\"B\");\nelse console.log(\"C\");"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай константу day = 2. Создай массив дней ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']. Выведи names[day] (ожидаемый вывод: вт)",
+      "starter": "const day = 2;\nconst names = [\"вс\", \"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\"];\n// console.log(names[day]);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\[",
+          "message": "Используй массив дней недели"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "вт",
+          "message": "day=2 → \"вт\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const day = 2;\nconst names = [\"вс\", \"пн\", \"вт\", \"ср\", \"чт\", \"пт\", \"сб\"];\nconsole.log(names[day]);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай константу temp = 25. Через тернарный оператор выведи 'жарко' если temp > 30, 'тепло' если temp > 15, иначе 'холодно' (ожидаемый вывод: тепло)",
+      "starter": "const temp = 25;\n// console.log(temp > 30 ? \"жарко\" : temp > 15 ? \"тепло\" : \"холодно\");\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\?",
+          "message": "Используй тернарный оператор"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "тепло",
+          "message": "25 → \"тепло\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const temp = 25;\nconsole.log(temp > 30 ? \"жарко\" : temp > 15 ? \"тепло\" : \"холодно\");"
+    }
+  ],
+  "recap": [
+    "if/else if/else — проверяй условия сверху вниз, выполняется первый подходящий блок.",
+    "Тернарный оператор: условие ? значениеЕслиTrue : значениеЕслиFalse — компактная альтернатива if/else для простых случаев.",
+    "switch — множественный выбор по одному значению, не забывай break.",
+    "Ровно 7 falsy-значений: false, 0, \"\", null, undefined, NaN.",
+    "Пустой массив [] и пустой объект {} — truthy (не null!).",
+    "Строка \"0\" — truthy, а число 0 — falsy. Строка не то же, что число."
+  ],
+  "quiz": [
+    {
+      "q": "Какие значения являются falsy в JavaScript?",
+      "options": [
+        "Все значения",
+        "false, 0, \"\", null, undefined, NaN",
+        "false, null, undefined",
+        "0, \"0\", null"
+      ],
+      "answer": 1,
+      "explain": "Ровно 7 falsy-значений: false, 0, \"\", null, undefined, NaN."
+    },
+    {
+      "q": "Что выведет: if ([]) { console.log(\"yes\"); } else { console.log(\"no\"); }",
+      "options": [
+        "yes",
+        "no",
+        "Ошибка",
+        "undefined"
+      ],
+      "answer": 0,
+      "explain": "Пустой массив [] — это truthy значение (объект не null)."
+    },
+    {
+      "q": "Что делает тернарный оператор?",
+      "options": [
+        "Создаёт цикл",
+        "Условие ? значениеЕслиTrue : значениеЕслиFalse",
+        "Объявляет функцию",
+        "Создаёт объект"
+      ],
+      "answer": 1,
+      "explain": "Тернарный оператор: условие ? значениеЕслиИстина : значениеЕслиЛожь — компактная форма if/else."
+    }
+  ]
+}

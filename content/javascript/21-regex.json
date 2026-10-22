@@ -1,0 +1,377 @@
+{
+  "id": "javascript-21-regex",
+  "title": "Регулярные выражения: маска для поиска",
+  "goal": "Использовать регулярные выражения для поиска, замены и валидации текста",
+  "prereq": [
+    "javascript-04-strings"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Представь: у тебя есть текст на <b>1000 страниц</b> и задача — найти все номера телефонов. Ты не будешь читать каждую строку вручную — ты напишешь <b>«маску»</b>. Маска описывает: цифра, цифра, дефис, цифра... и программа сама найдёт все совпадения. Регулярное выражение — это и есть такая маска: шаблон, который описывает <b>какой текст искать</b>, а не сам текст."
+    },
+    {
+      "type": "text",
+      "content": "<b>Регулярное выражение (regex)</b> — это шаблон, описывающий набор строк. В JavaScript regex создаётся через <code>/шаблон/флаги</code> или <code>new RegExp('шаблон', 'флаги')</code>. Regex можно использовать для поиска (<code>.test()</code>, <code>.match()</code>), замены (<code>.replace()</code>) и валидации данных."
+    },
+    {
+      "type": "code",
+      "content": "// Создание regex: /шаблон/флаги\nconst digit = /\\d/;  // любая цифра\n\n// .test() — проверяет, есть ли совпадение (true/false)\nconsole.log(digit.test(\"a\"));  // false — нет цифры\nconsole.log(digit.test(\"3\"));  // true — есть цифра\n\n// .match() — возвращает найденные совпадения\nconsole.log(\"abc123\".match(/\\d/));  // [\"1\"] — первое совпадение\nconsole.log(\"abc123\".match(/\\d/g)); // [\"1\",\"2\",\"3\"] — все (флаг g)"
+    },
+    {
+      "type": "heading",
+      "content": "Создание: /.../ и new RegExp"
+    },
+    {
+      "type": "text",
+      "content": "Два способа создать regex: <code>/шаблон/флаги</code> (литерал, работает при написании кода) и <code>new RegExp('шаблон', 'флаги')</code> (если шаблон генерируется динамически). Литерал быстрее и читаемее — используй его когда можешь."
+    },
+    {
+      "type": "code",
+      "content": "// Литерал — когда шаблон известен заранее\nconst email = /[a-z]+@[a-z]+\\.[a-z]+/;\n\n// new RegExp — когда шаблон строится динамически\nconst word = \"hello\";\nconst re = new RegExp(word);  // /hello/\nconsole.log(re.test(\"say hello\"));  // true\n\n// new RegExp с экранированием: двойной \\\nconst path = new RegExp(\"C:\\\\\\\\Users\");  // ищет C:\\Users"
+    },
+    {
+      "type": "heading",
+      "content": "Основные символы шаблона"
+    },
+    {
+      "type": "text",
+      "content": "Символы в regex — это команды. <code>\\d</code> = цифра, <code>\\w</code> = буква/цифра, <code>\\s</code> = пробельный символ. Точка <code>.</code> = любой символ (кроме переноса строки). Квадратные скобки <code>[abc]</code> = один из символов. Фигурные <code>{3}</code> = количество повторений. Это строительные блоки для создания масок."
+    },
+    {
+      "type": "code",
+      "content": "// \\d — цифра (0-9)\nconsole.log(/\\d/.test(\"5\"));  // true\n\n// \\w — слово (a-z, A-Z, 0-9, _)\nconsole.log(/\\w/.test(\"A\"));  // true\nconsole.log(/\\w/.test(\"_\"));  // true\n\n// \\s — пробел (пробел, табуляция)\nconsole.log(/\\s/.test(\" \"));  // true\n\n// . — любой символ\nconsole.log(/./.test(\"x\"));   // true\nconsole.log(/./.test(\"1\"));   // true\nconsole.log(/./.test(\"\\n\"));  // false — точка не ловит перенос строки\n\n// [abc] — один из: a, b или c\nconsole.log(/[abc]/.test(\"b\"));  // true\nconsole.log(/[abc]/.test(\"d\"));  // false"
+    },
+    {
+      "type": "heading",
+      "content": "Квантификаторы: сколько раз повторять"
+    },
+    {
+      "type": "text",
+      "content": "Квантификаторы указывают <b>сколько раз</b> повторять предыдущий элемент: <code>*</code> = 0 или больше, <code>+</code> = 1 или больше, <code>?</code> = 0 или 1, <code>{3}</code> = ровно 3, <code>{2,4}</code> = от 2 до 4. Без квантификатора regex ищет ОДИН символ."
+    },
+    {
+      "type": "code",
+      "content": "* — 0 или больше\nconsole.log(/ab*c/.test(\"ac\"));    // true — 0 'b'\nconsole.log(/ab*c/.test(\"abc\"));   // true — 1 'b'\nconsole.log(/ab*c/.test(\"abbc\"));  // true — 2 'b'\n\n+ — 1 или больше\nconsole.log(/ab+c/.test(\"ac\"));    // false — нет 'b'\nconsole.log(/ab+c/.test(\"abc\"));   // true\n\n? — 0 или 1 (опционально)\nconsole.log(/colou?r/.test(\"color\"));    // true\nconsole.log(/colou?r/.test(\"colour\"));   // true\n\n{3} — ровно 3\nconsole.log(/\\d{3}/.test(\"123\"));   // true\nconsole.log(/\\d{3}/.test(\"12\"));    // false"
+    },
+    {
+      "type": "predict",
+      "code": "console.log(/\\d{3}/.test(\"5\"));",
+      "question": "Что выведет этот тест?",
+      "options": [
+        "true",
+        "false",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "\\d{3} = ровно три цифры подряд. В строке \"5\" только одна цифра → false."
+    },
+    {
+      "type": "heading",
+      "content": "^ и $ — начало и конец строки"
+    },
+    {
+      "type": "text",
+      "content": "<code>^</code> — начало строки, <code>$</code> — конец строки. Без них regex ищет совпадение в <b>любом месте</b>. С ними — проверяешь, что <b>вся строка</b> соответствует шаблону. Это критично для валидации."
+    },
+    {
+      "type": "code",
+      "content": "// Без ^ и $ — ищет в любом месте\nconsole.log(/123/.test(\"abc123def\"));  // true — нашло 123 внутри\n\n// С ^ и $ — вся строка должна соответствовать\nconsole.log(/^123$/.test(\"123\"));      // true — вся строка '123'\nconsole.log(/^123$/.test(\"1234\"));     // false — есть лишняя цифра\nconsole.log(/^123$/.test(\"0123\"));     // false — есть лишняя цифра в начале"
+    },
+    {
+      "type": "predict",
+      "code": "console.log(/cat/.test(\"The cat sat\"));\nconsole.log(/^cat/.test(\"The cat sat\"));\nconsole.log(/cat$/.test(\"The cat sat\"));",
+      "question": "Что выведется?",
+      "options": [
+        "true, true, true",
+        "true, false, false",
+        "false, true, false",
+        "true, false, true"
+      ],
+      "answer": 1,
+      "explain": "/cat/ — ищет 'cat' в любом месте → true. /^cat/ — 'cat' в начале строки → false (начинается с 'The'). /cat$/ — 'cat' в конце строки → false (заканчивается на 'sat')."
+    },
+    {
+      "type": "heading",
+      "content": "Группировка: () и альтернатива: |"
+    },
+    {
+      "type": "text",
+      "content": "<code>(...)</code> — группирует выражение, квантификатор действует на всю группу. <code>|</code> — «или». Можно искать одно ИЛИ другое. Группировка + альтернатива = мощная комбинация."
+    },
+    {
+      "type": "code",
+      "content": "// Группировка: (ab)+ — повторяем 'ab', а не 'b'\nconsole.log(/(ab)+/.test(\"ab\"));      // true\nconsole.log(/(ab)+/.test(\"abab\"));    // true\nconsole.log(/(ab)+/.test(\"abbb\"));    // false\n\n// Альтернатива: cat|dog — или cat, или dog\nconsole.log(/cat|dog/.test(\"I have a cat\"));    // true\nconsole.log(/cat|dog/.test(\"I have a dog\"));    // true\nconsole.log(/cat|dog/.test(\"I have a bird\"));   // false\n\n// Комбинация: (cat|dog)s — множественное число\nconsole.log(/(cat|dog)s/.test(\"cats\"));    // true\nconsole.log(/(cat|dog)s/.test(\"dogs\"));    // true"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Точка (.) в regex — это не точка!</b> Она означает <b>любой символ</b>. Если ты ищешь <code>file.txt</code>, regex <code>/file.txt/</code> найдёт и <code>fileXtxt</code>, и <code>file!txt</code>. Чтобы искать буквальную точку, экранируй: <code>\\.</code> — так regex поймёт, что нужна именно точка. То же для других спецсимволов: <code>\\*</code>, <code>\\?</code>, <code>\\+</code>, <code>\\$</code>, <code>\\^</code>, <code>\\[</code>, <code>\\(</code>."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: точка ловит любой символ\nconsole.log(/file.txt/.test(\"fileXtxt\"));  // true — точка = X!\nconsole.log(/file.txt/.test(\"file.txt\"));  // true\n\n// ПРАВИЛЬНО: экранированная точка\nconsole.log(/file\\.txt/.test(\"fileXtxt\"));  // false — X не точка\nconsole.log(/file\\.txt/.test(\"file.txt\"));  // true — настоящая точка"
+    },
+    {
+      "type": "heading",
+      "content": ".test() — проверка наличия"
+    },
+    {
+      "type": "text",
+      "content": "<code>.test(str)</code> возвращает <b>true/false</b>: есть ли совпадение. Это самый быстрый способ проверить — нет накладных расходов, просто да/нет. Идеально для валидации: 'подходит ли строка под шаблон'."
+    },
+    {
+      "type": "code",
+      "content": "// Валидация email\nfunction isValidEmail(str) {\n  return /^[\\w.]+@[\\w]+\\.[a-z]{2,}$/.test(str);\n}\n\nconsole.log(isValidEmail(\"alice@mail.com\"));  // true\nconsole.log(isValidEmail(\"bad@\"));             // false\nconsole.log(isValidEmail(\"noat.com\"));         // false\n\n// Валидация телефона\nfunction isValidPhone(str) {\n  return /^\\d{3}-\\d{3}-\\d{4}$/.test(str);\n}\n\nconsole.log(isValidPhone(\"555-123-4567\"));  // true\nconsole.log(isValidPhone(\"5551234567\"));    // false — нет дефисов"
+    },
+    {
+      "type": "heading",
+      "content": ".match() — найти совпадения"
+    },
+    {
+      "type": "text",
+      "content": "<code>.match(regex)</code> возвращает <b>массив</b> найденных совпадений или null. Без флага <code>g</code> — только первое совпадение. С флагом <code>g</code> — все. Это ключевое отличие: g = global = найти ВСЕ."
+    },
+    {
+      "type": "code",
+      "content": "// Без флага g — одно совпадение\nconsole.log(\"abc123def456\".match(/\\d+/));\n// [\"123\", index: 3, input: \"abc123def456\"]\n\n// С флагом g — все совпадения (только строки)\nconsole.log(\"abc123def456\".match(/\\d+/g));\n// [\"123\", \"456\"]\n\n// Поиск слов из 3 букв\nconsole.log(\"The quick brown fox\".match(/[a-z]{3}/gi));\n// [\"The\", \"qui\", \"bro\", \"fox\"]"
+    },
+    {
+      "type": "heading",
+      "content": ".replace() — замена текста"
+    },
+    {
+      "type": "text",
+      "content": "<code>.replace(шаблон, замена)</code> заменяет первое совпадение. С флагом <code>g</code> — заменяет <b>все</b>. Второй аргумент — строка замены или функция, которая вызывается для каждого совпадения."
+    },
+    {
+      "type": "code",
+      "content": "// Заменяем первое совпадение\nconsole.log(\"hello world\".replace(/world/, \"there\"));\n// \"hello there\"\n\n// Заменяем ВСЕ (флаг g)\nconsole.log(\"aaa bbb aaa\".replace(/aaa/g, \"ccc\"));\n// \"ccc bbb ccc\"\n\n// Заменяем цифры на [NUM]\nconsole.log(\"I have 3 cats\".replace(/\\d/g, \"[NUM]\"));\n// \"I have [NUM] cats\""
+    },
+    {
+      "type": "heading",
+      "content": "Группы захвата: () и $1"
+    },
+    {
+      "type": "text",
+      "content": "<code>(...)</code> — не только группирует, но и <b>захватывает</b> совпадение. В замене используешь <code>$1</code>, <code>$2</code> для вставки захваченного текста. Это мощнейший инструмент: разделил дату на части, собрал в другом формате."
+    },
+    {
+      "type": "code",
+      "content": "// Захват групп: (день).(месяц).(год)\nconst date = \"25.12.2026\";\nconsole.log(date.replace(/(\\d{2})\\.(\\d{2})\\.(\\d{4})/, \"$2/$1/$3\"));\n// \"12/25/2026\" — переформатировал дату\n\n// match с группами — возвращает массив с группами\nconst match = \"25.12.2026\".match(/(\\d{2})\\.(\\d{2})\\.(\\d{4})/);\nconsole.log(match[0]);  // \"25.12.2026\" — полное совпадение\nconsole.log(match[1]);  // \"25\" — первая группа\nconsole.log(match[2]);  // \"12\" — вторая группа\nconsole.log(match[3]);  // \"2026\" — третья группа"
+    },
+    {
+      "type": "heading",
+      "content": "Флаги: g, i, m"
+    },
+    {
+      "type": "text",
+      "content": "<code>g</code> — global (все совпадения), <code>i</code> — ignore case (без учёта регистра), <code>m</code> — multiline (^ и $ работают построчно). Можно комбинировать: <code>/abc/gi</code>."
+    },
+    {
+      "type": "code",
+      "content": "// g — global: все совпадения\nconsole.log(\"Hello hello HELLO\".match(/hello/g));  // null — регистр важен!\nconsole.log(\"Hello hello HELLO\".match(/hello/gi)); // [\"Hello\", \"hello\", \"HELLO\"]\n\n// i — ignore case: без учёта регистра\nconsole.log(/hello/.test(\"Hello\"));        // false\nconsole.log(/hello/i.test(\"Hello\"));       // true\n\n// m — multiline: ^ и $ построчно\nconst text = \"first line\\nsecond line\\nthird line\";\nconsole.log(text.match(/^\\w+/gm));  // [\"first\", \"second\", \"third\"]"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>/pattern/g</code> для поиска ВСЕХ совпадений, но помни: без <code>g</code> .match() вернёт только первое совпадение с метаданными (index, input). Для простого поиска-замены всех — всегда добавляй <code>g</code>."
+    },
+    {
+      "type": "heading",
+      "content": "Частые паттерны"
+    },
+    {
+      "type": "text",
+      "content": "Некоторые regex встречаются постоянно: email, телефон, URL, цифры. Запоминай и комбинируй их — это строительные блоки для более сложных масок."
+    },
+    {
+      "type": "code",
+      "content": "// Цифры\nconsole.log(/\\d+/.test(\"123\"));  // true\n\n// Только буквы\nconsole.log(/^[a-z]+$/.test(\"hello\"));  // true\nconsole.log(/^[a-z]+$/.test(\"hello1\")); // false\n\n// Email (простой)\nconsole.log(/^[\\w.-]+@[\\w.-]+\\.[a-z]+$/.test(\"user@mail.com\"));  // true\n\n// Телефон (формат XXX-XXX-XXXX)\nconsole.log(/^\\d{3}-\\d{3}-\\d{4}$/.test(\"555-123-4567\"));  // true\n\n// URL\nconsole.log(/^https?:\\/\\//.test(\"https://example.com\"));  // true"
+    },
+    {
+      "type": "note",
+      "content": "Regex — это язык программирования для работы со строками. Не пытайся запомнить всё — учись комбинировать базовые элементы: символы, квантификаторы, группы, флаги."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Проверь, содержит ли строка 'hello world' слово 'hello' через .test(). Выведи результат (ожидаемый вывод: true)",
+      "starter": "const str = \"hello world\";\n// console.log(/hello/.test(str));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "new\\s+RegExp\\(",
+          "message": "Используй RegExp"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.test\\(",
+          "message": "Используй .test()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "/hello/.test(\"hello world\") = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const re = new RegExp(\"hello\");\nconsole.log(re.test(\"hello world\"));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Данная строка s = \"abc123def456\". Найди все числа через .match(/\\d+/g) и выведи их через join(',') (ожидаемый вывод: 123,456)",
+      "starter": "const s = \"abc123def456\";\n// const nums = s.match(/\\d+/g);\n// console.log(nums.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.match\\(.*\\\\d",
+          "message": "match с \\d+"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "123,456",
+          "message": "match(/\\d+/g)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const s = \"abc123def456\";\nconst nums = s.match(/\\d+/g);\nconsole.log(nums.join(\",\"));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай константу s = \"hello\". Замени первую 'h' на 'H' через .replace() и выведи результат (ожидаемый вывод: Hello)",
+      "starter": "const s = \"hello\";\n// console.log(s.replace(\"h\", \"H\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.replace\\(",
+          "message": "Используй replace()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Hello",
+          "message": "replace(\"h\", \"H\")"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const s = \"hello\";\nconsole.log(s.replace(\"h\", \"H\"));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай строку s = \"a1b2c3\". Найди все буквы через .match(/[a-z]/g) и выведи их через join(',') (ожидаемый вывод: a,b,c)",
+      "starter": "const s = \"a1b2c3\";\n// const letters = s.match(/[a-z]/g);\n// console.log(letters.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\[a-z\\]",
+          "message": "Используй символьный класс [a-z]"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "a,b,c",
+          "message": "match(/[a-z]/g)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const s = \"a1b2c3\";\nconst letters = s.match(/[a-z]/g);\nconsole.log(letters.join(\",\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Извлеки год из даты '25.12.2026' через .match(/(\\d{2})\\.(\\d{2})\\.(\\d{4})/). Выведи группу [3] (год, 2026).",
+      "starter": "// const date = \"25.12.2026\";\n// const match = date.match(/(\\d{2})\\.(\\d{2})\\.(\\d{4})/);\n// console.log(match[3]);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "@",
+          "message": "Используй @ в регулярке"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "/@/.test(\"test@test.com\") = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const s = \"test@test.com\";\nconsole.log(/@/.test(s));"
+    }
+  ],
+  "recap": [
+    "regex — шаблон для поиска текста: /шаблон/флаги.",
+    ".test() — true/false: есть ли совпадение.",
+    ".match() — массив совпадений или null.",
+    ".replace() — замена первого или всех (с флагом g).",
+    "Точка (.) = любой символ, экранируй как \\. для поиска точки.",
+    "^ и $ — начало и конец строки (для валидации)."
+  ],
+  "quiz": [
+    {
+      "q": "Что означает точка (.) в regex?",
+      "options": [
+        "Буквальную точку",
+        "Любой символ",
+        "Конец строки",
+        "Пробел"
+      ],
+      "answer": 1,
+      "explain": "Точка = любой символ. Для поиска точки экранируй: \\."
+    },
+    {
+      "q": "Чем отличается /abc/ от /abc/g?",
+      "options": [
+        "Ничем",
+        "/g ищет все совпадения",
+        "/g быстрее",
+        "/g без регистра"
+      ],
+      "answer": 1,
+      "explain": "Флаг g = global = найти все совпадения, не только первое."
+    },
+    {
+      "q": "Что вернёт /cat/.test('The cat sat')?",
+      "options": [
+        "false",
+        "true",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "/cat/ ищет 'cat' в любом месте строки — нашёл и вернул true."
+    }
+  ]
+}

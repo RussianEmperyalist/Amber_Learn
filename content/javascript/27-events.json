@@ -1,0 +1,337 @@
+{
+  "id": "javascript-27-events",
+  "title": "События: реакция на действия пользователя",
+  "goal": "Использовать addEventListener, работать с объектом event, понимать event.preventDefault",
+  "prereq": [
+    "javascript-26-dom-basics",
+    "javascript-09-functions"
+  ],
+  "duration": 16,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Страница без событий — это <b>телевизор без пульта</b>. Ты можешь смотреть, но не можешь переключать каналы, убавлять звук или останавливать рекламу. События — это <b>пульт</b>. Когда пользователь нажимает кнопку — срабатывает событие 'click'. Когда вводит текст — 'input'. Когда страница загрузилась — 'load'. Твоя программа <b>слушает</b> события и реагирует: показывает диалоги, отправляет данные, обновляет интерфейс."
+    },
+    {
+      "type": "text",
+      "content": "<b>Событие (Event)</b> — это сигнал от браузера о том, что что-то произошло: клик, нажатие клавиши, загрузка страницы, скролл. Чтобы реагировать, используешь <code>element.addEventListener('type', callback)</code>. Callback-функция получает объект <code>event</code> с информацией о событии: что нажали, где, когда."
+    },
+    {
+      "type": "code",
+      "content": "// Находим кнопку\nconst btn = document.querySelector(\"button\");\n\n// Подписываемся на клик\nbtn.addEventListener(\"click\", function(event) {\n  // event — объект с информацией о событии\n  console.log(\"Кнопка нажата!\");\n  console.log(event.type);     // \"click\"\n  console.log(event.target);   // элемент, на который нажали\n});\n\n// event.target — элемент, который вызвал событие"
+    },
+    {
+      "type": "heading",
+      "content": "addEventListener — подписка на события"
+    },
+    {
+      "type": "text",
+      "content": "<code>addEventListener(type, callback)</code> регистрирует обработчик события. Можно подписаться на одно и то же событие несколько раз — все колбэки сработают. Можно подписаться на разные события: click, keydown, submit, input, mouseover, scroll."
+    },
+    {
+      "type": "code",
+      "content": "const btn = document.querySelector(\"button\");\n\n// Несколько обработчиков на одно событие\nbtn.addEventListener(\"click\", () => console.log(\"Первый\"));\nbtn.addEventListener(\"click\", () => console.log(\"Второй\"));\n// При клике: \"Первый\" → \"Второй\" — все сработают!\n\n// Разные события\nbtn.addEventListener(\"mouseover\", () => console.log(\"Мышь на кнопке\"));\nbtn.addEventListener(\"mouseout\", () => console.log(\"Мышь ушла\"));"
+    },
+    {
+      "type": "heading",
+      "content": "Объект event — данные о событии"
+    },
+    {
+      "type": "text",
+      "content": "Обработчик получает объект <code>event</code> — это словарь с информацией: <code>event.type</code> (тип), <code>event.target</code> (элемент), <code>event.key</code> (клавиша), <code>event.clientX/Y</code> (координаты мыши). Это позволяет реагировать по-разному в зависимости от контекста."
+    },
+    {
+      "type": "code",
+      "content": "document.addEventListener(\"keydown\", (event) => {\n  console.log(\"Клавиша:\", event.key);      // какая клавиша\n  console.log(\"Код:\", event.code);          // код клавиши\n  console.log(\"Ctrl нажат:\", event.ctrlKey); // была ли нажата Ctrl\n});\n\n// event.key — символ клавиши ('a', 'Enter', 'Escape')\n// event.code — физический код ('KeyA', 'Enter', 'Escape')"
+    },
+    {
+      "type": "predict",
+      "code": "const btn = document.querySelector(\"#btn\");\nbtn.addEventListener(\"click\", (e) => {\n  console.log(e.target === btn);\n});\ndocument.body.appendChild(btn);\nbtn.click();",
+      "question": "Что выведется при клике?",
+      "options": [
+        "true",
+        "false",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "event.target — это элемент, на который кликнули. В данном случае кликнули на btn, и обработчик подписан на btn → target === btn → true.",
+      "fixture": "<button id=\"btn\"></button>"
+    },
+    {
+      "type": "heading",
+      "content": "event.preventDefault() — отмена поведения"
+    },
+    {
+      "type": "text",
+      "content": "Браузер <b>по умолчанию</b> делает что-то при каждом событии: клик по ссылке открывает URL, отправка формы перезагружает страницу. <code>event.preventDefault()</code> отменяет поведение по умолчанию. Полезно для SPA, валидации форм, кастомных диалогов."
+    },
+    {
+      "type": "code",
+      "content": "// Отмена перезагрузки при отправке формы\nconst form = document.querySelector(\"form\");\n\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();  // ОСТАНАВЛИВАЕМ перезагрузку!\n  console.log(\"Форма отправлена без перезагрузки\");\n  // Теперь можно отправить данные через fetch\n});"
+    },
+    {
+      "type": "warning",
+      "content": "<b>event.preventDefault() — как стоп-кран.</b> Забыл вызвать — форма перезагрузит страницу, и весь код, который ты написал для обновления без перезагрузки, окажется бесполезным. Всегда ставь <code>event.preventDefault()</code> в обработчике submit формы, если не хочешь перезагрузки. Это самая частая ошибка при работе с формами."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: забыли preventDefault — форма перезагрузит страницу\n// form.addEventListener(\"submit\", (e) => {\n//   console.log(\"Отправка...\");  // выполняется, но...\n//   // страница перезагружается!\n// });\n\n// ПРАВИЛЬНО: предотвращаем перезагрузку\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();  // стоп!\n  console.log(\"Отправка...\");  // теперь выполняется и страница не перезагружается\n});"
+    },
+    {
+      "type": "predict",
+      "code": "const parent = document.querySelector(\".parent\");\nconst child = document.querySelector(\".child\");\nparent.addEventListener(\"click\", () => console.log(\"parent\"));\nchild.addEventListener(\"click\", (e) => {\n  console.log(\"child\");\n  e.stopPropagation();\n});\nchild.click();",
+      "question": "Что выведется?",
+      "options": [
+        "\"child\" → \"parent\"",
+        "\"child\" только",
+        "\"parent\" только",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "stopPropagation() останавливает всплытие. Клик по child выводит 'child', но 'parent' НЕ вызывается — событие остановлено.",
+      "fixture": "<div class=\"parent\"><div class=\"child\"></div></div>"
+    },
+    {
+      "type": "heading",
+      "content": "События мыши и клавиатуры"
+    },
+    {
+      "type": "text",
+      "content": "Самые частые события: <b>мышь</b> — click, dblclick, mouseover, mouseout, mousemove. <b>Клавиатура</b> — keydown, keyup, keypress (устарел). <b>Фокус</b> — focus, blur. <b>Формы</b> — input, change, submit. Каждое событие даёт разную информацию через объект event."
+    },
+    {
+      "type": "code",
+      "content": "// События мыши\nconst box = document.querySelector(\".box\");\nbox.addEventListener(\"click\", (e) => {\n  console.log(\"Кординаты:\", e.clientX, e.clientY);  // где кликнули\n});\nbox.addEventListener(\"mouseover\", (e) => {\n  console.log(\"Мышь на элементе\");\n});\n\n// События клавиатуры\ndocument.addEventListener(\"keydown\", (e) => {\n  console.log(\"Нажата:\", e.key);\n  if (e.key === \"Escape\") console.log(\"Выход\");\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Всплытие событий (event bubbling)"
+    },
+    {
+      "type": "text",
+      "content": "Событие <b>всплывает</b>: клик по кнопке → клик по div → клик по body. Если обработчик подписан на родителя, он сработает для всех дочерних элементов. Чтобы остановить всплытие — <code>event.stopPropagation()</code>."
+    },
+    {
+      "type": "code",
+      "content": "const parent = document.querySelector(\".parent\");\nconst child = document.querySelector(\".child\");\n\nparent.addEventListener(\"click\", () => console.log(\"Родитель\"));\nchild.addEventListener(\"click\", (e) => {\n  console.log(\"Дочерний\");\n  e.stopPropagation();  // СТОП — родитель не узнает о клике\n});\n\n// Клик по child: \"Дочерний\" — и на этом всё\n// Без stopPropagation: \"Дочерний\" → \"Родитель\""
+    },
+    {
+      "type": "heading",
+      "content": "Event delegation — делегирование событий"
+    },
+    {
+      "type": "text",
+      "content": "Вместо подписки на каждую кнопку в списке, подписываемся на <b>родителя</b>. Обработчик получает event, а <code>event.target</code> показывает, на что именно нажали. Экономит память и работает с динамическими элементами."
+    },
+    {
+      "type": "code",
+      "content": "const list = document.querySelector(\".items\");\n\n// Один обработчик на весь список\nlist.addEventListener(\"click\", (event) => {\n  const btn = event.target.closest(\"button\");\n  if (!btn) return;  // кликнули не по кнопке\n  console.log(\"Нажата кнопка:\", btn.textContent);\n});\n\n// Работает даже если кнопки добавлены после загрузки!"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>event.target.closest('selector')</code> для поиска нужного элемента вверх по дереву. Это надёжнее, чем event.target — пользователь может кликнуть по дочернему элементу (например, по иконке внутри кнопки)."
+    },
+    {
+      "type": "heading",
+      "content": "Событие change и input"
+    },
+    {
+      "type": "text",
+      "content": "<code>input</code> — срабатывает при КАЖДОМ изменении (каждая буква). <code>change</code> — когда пользователь завершил ввод (убрал фокус или нажал Enter). Для мгновенной реакции на ввод — input, для финальной проверки — change."
+    },
+    {
+      "type": "code",
+      "content": "const input = document.querySelector(\"input\");\n\n// input — каждый символ\ninput.addEventListener(\"input\", (e) => {\n  console.log(\"Печатаем:\", e.target.value);\n});\n\n// change — когда закончили\ninput.addEventListener(\"change\", (e) => {\n  console.log(\"Финальное значение:\", e.target.value);\n});"
+    },
+    {
+      "type": "note",
+      "content": "События — основа интерактивности в браузере. Без них JavaScript выполняется один раз и забывает о пользователе. С событиями программа живёт и реагирует на мир."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай кнопку, подпишись на 'click' через addEventListener. Установи флаг clicked = true в обработчике, вызови dispatchEvent(new MouseEvent('click', { bubbles: true })) и выведи clicked (ожидаемый вывод: true)",
+      "starter": "const btn = document.createElement(\"button\");\nbtn.textContent = \"Click\";\ndocument.body.appendChild(btn);\nlet clicked = false;\nbtn.addEventListener(\"click\", () => { clicked = true; });\n// btn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));\n// console.log(clicked);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.addEventListener\\(",
+          "message": "Используй addEventListener()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\"click\"",
+          "message": "Подписка на событие \"click\""
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "addEventListener → clicked = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const btn = document.createElement(\"button\");\nbtn.textContent = \"Click\";\ndocument.body.appendChild(btn);\nlet clicked = false;\nbtn.addEventListener(\"click\", () => { clicked = true; });\nbtn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));\nconsole.log(clicked);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай input, установи value = 'hello' и выведи input.value (ожидаемый вывод: hello)",
+      "starter": "const input = document.createElement(\"input\");\ndocument.body.appendChild(input);\n// input.value = \"hello\";\n// console.log(input.value);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.value",
+          "message": "Используй .value"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "hello",
+          "message": "input.value = \"hello\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const input = document.createElement(\"input\");\ndocument.body.appendChild(input);\ninput.value = \"hello\";\nconsole.log(input.value);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай кнопку, подпишись на 'click' дважды через addEventListener (каждый увеличивает счётчик). Вызови dispatchEvent(new MouseEvent('click', { bubbles: true })) и выведи счётчик (ожидаемый вывод: 2)",
+      "starter": "const btn = document.createElement(\"button\");\ndocument.body.appendChild(btn);\nlet count = 0;\nbtn.addEventListener(\"click\", () => count++);\nbtn.addEventListener(\"click\", () => count++);\n// btn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));\n// console.log(count);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.addEventListener\\(",
+          "message": "Два addEventListener"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2",
+          "message": "Два обработчика click → count = 2"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const btn = document.createElement(\"button\");\ndocument.body.appendChild(btn);\nlet count = 0;\nbtn.addEventListener(\"click\", () => count++);\nbtn.addEventListener(\"click\", () => count++);\nbtn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));\nconsole.log(count);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай div, подпишись на 'click' через addEventListener. В обработчике выведи event.target.tagName. Вызови dispatchEvent(new MouseEvent('click', { bubbles: true })) (ожидаемый вывод: DIV)",
+      "starter": "const div = document.createElement(\"div\");\ndocument.body.appendChild(div);\n// div.addEventListener(\"click\", (e) => { console.log(e.target.tagName); });\n// div.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "(?:event|e|evt)\\.target",
+          "message": "Используй event.target"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.tagName",
+          "message": "Используй .tagName"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "DIV",
+          "message": "event.target.tagName = \"DIV\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const div = document.createElement(\"div\");\ndocument.body.appendChild(div);\ndiv.addEventListener(\"click\", (e) => { console.log(e.target.tagName); });\ndiv.dispatchEvent(new MouseEvent(\"click\", { bubbles: true }));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай кнопку, подпишись на клик, в обработчике вызови e.preventDefault() и установи prevented = true. Вызови dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })) и выведи prevented (ожидаемый вывод: true)",
+      "starter": "const btn = document.createElement(\"button\");\ndocument.body.appendChild(btn);\nlet prevented = false;\nbtn.addEventListener(\"click\", (e) => { e.preventDefault(); prevented = true; });\n// btn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true, cancelable: true }));\n// console.log(prevented);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.preventDefault\\(\\)",
+          "message": "Используй preventDefault()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "preventDefault сработал"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const btn = document.createElement(\"button\");\ndocument.body.appendChild(btn);\nlet prevented = false;\nbtn.addEventListener(\"click\", (e) => { e.preventDefault(); prevented = true; });\nbtn.dispatchEvent(new MouseEvent(\"click\", { bubbles: true, cancelable: true }));\nconsole.log(prevented);"
+    }
+  ],
+  "recap": [
+    "addEventListener(type, callback) — подписка на события.",
+    "event — объект с информацией: type, target, key, clientX/Y.",
+    "event.preventDefault() — отмена поведения браузера по умолчанию.",
+    "event.stopPropagation() — остановка всплытия вверх по дереву.",
+    "Event delegation: один обработчик на родителя + event.target.",
+    "input — при каждом символе, change — при завершении ввода."
+  ],
+  "quiz": [
+    {
+      "q": "Что делает event.preventDefault()?",
+      "options": [
+        "Удаляет элемент",
+        "Отменяет поведение браузера по умолчанию",
+        "Останавливает скрипт",
+        "Скрывает элемент"
+      ],
+      "answer": 1,
+      "explain": "preventDefault() отменяет стандартное поведение: перезагрузку формы, переход по ссылке и т.д."
+    },
+    {
+      "q": "Что такое event.target?",
+      "options": [
+        "Корень документа",
+        "Элемент, вызвавший событие",
+        "Родительский элемент",
+        "Функция-обработчик"
+      ],
+      "answer": 1,
+      "explain": "event.target — это DOM-элемент, на который было совершено действие."
+    },
+    {
+      "q": "Как остановить всплытие события?",
+      "options": [
+        "event.stop()",
+        "event.preventDefault()",
+        "event.stopPropagation()",
+        "event.bubble()"
+      ],
+      "answer": 2,
+      "explain": "stopPropagation() останавливает всплытие: событие не пойдёт дальше по дереву."
+    }
+  ]
+}

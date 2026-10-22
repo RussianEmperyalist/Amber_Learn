@@ -1,0 +1,346 @@
+{
+  "id": "javascript-16-classes",
+  "title": "Классы: чертёж дома",
+  "goal": "Создавать классы, понимать constructor, new, this и методы",
+  "prereq": [
+    "javascript-09-functions",
+    "javascript-08-objects"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Представь <b>чертёж дома</b>. Сам по себе чертёж — это бумага: в нём нельзя жить, но он описывает <i>как построить</i> дом. Класс в JavaScript — это чертёж. <code>class House { }</code> не создаёт ничего реального — это только план. А когда ты <b>строишь дом по чертежу</b> — это создание экземпляра: <code>new House()</code>. По одному чертежу можно построить 100 разных домов. Каждый со своей площадью, цветом, адресом. Но все — по одному плану."
+    },
+    {
+      "type": "text",
+      "content": "<b>Класс</b> — это шаблон для создания объектов с одинаковой структурой. Вместо того чтобы вручную создавать <code>{ name: \"A\", greet: function() {...} }</code> для каждого пользователя, ты описываешь рецепт один раз в классе. Класс определяет: <b>какие свойства</b> будут у объекта (в <code>constructor</code>) и <b>какие действия</b> он умеет (методы)."
+    },
+    {
+      "type": "code",
+      "content": "// Чертёж (класс)\nclass User {\n  // Конструктор — план того, как собрать объект\n  constructor(name, age) {\n    this.name = name;   // свойство name = то, что передали\n    this.age = age;     // свойство age = то, что передали\n  }\n\n  // Метод — действие, которое умеет объект\n  greet() {\n    return `Hi, I'm ${this.name}`;\n  }\n}\n\n// Постройка конкретного объекта (экземпляр)\nconst alice = new User(\"Alice\", 25);\nconsole.log(alice.name);   // Alice\nconsole.log(alice.greet()); // Hi, I'm Alice"
+    },
+    {
+      "type": "heading",
+      "content": "constructor — план сборки"
+    },
+    {
+      "type": "text",
+      "content": "<code>constructor</code> — специальная функция внутри класса, которая вызывается автоматически при <code>new</code>. Она принимает параметры и инициализирует свойства. Это первый код, который выполняется при создании объекта. Если не написать constructor, JS создаст пустой constructor автоматически."
+    },
+    {
+      "type": "code",
+      "content": "class Car {\n  constructor(brand, year) {\n    // this — это будущий объект, который создаётся\n    this.brand = brand;  // сохраняем brand как свойство\n    this.year = year;    // сохраняем year как свойство\n    this.mileage = 0;    // можно задать значение по умолчанию\n  }\n}\n\nconst car1 = new Car(\"Toyota\", 2020);\nconst car2 = new Car(\"BMW\", 2023);\n\nconsole.log(car1.brand);  // Toyota\nconsole.log(car2.brand);  // BMW\nconsole.log(car1.year);   // 2020"
+    },
+    {
+      "type": "heading",
+      "content": "this — сам объект"
+    },
+    {
+      "type": "text",
+      "content": "<code>this</code> внутри метода указывает на объект, у которого этот метод вызвали. У каждого экземпляра свой <code>this</code>. Когда пишешь <code>car1.drive()</code>, внутри метода <code>this === car1</code>. Это способ сказать 'моё свойство', а не 'вообще любое'."
+    },
+    {
+      "type": "code",
+      "content": "class Counter {\n  constructor() {\n    this.count = 0;  // у каждого экземпляра свой счётчик\n  }\n\n  increment() {\n    this.count++;  // увеличиваю СВОЙ счётчик\n    return this.count;\n  }\n}\n\nconst c1 = new Counter();\nconst c2 = new Counter();\n\nc1.increment();  // this = c1\nc1.increment();  // this = c1\nc2.increment();  // this = c2\n\nconsole.log(c1.count);  // 2 — c1 incremented twice\nconsole.log(c2.count);  // 1 — c2 incremented once\n// Каждый объект хранит данные НЕЗАВИСИМО!"
+    },
+    {
+      "type": "predict",
+      "code": "function greet() {\n  console.log(this);\n}\ngreet();",
+      "question": "Что выведет this в обычной функции?",
+      "options": [
+        "undefined",
+        "window (или undefined в strict)",
+        "Ошибка",
+        "null"
+      ],
+      "answer": 1,
+      "explain": "В обычной функции this зависит от способа вызова. При простом greet() this = window (в браузере) или undefined (в strict mode / модулях). В методе объекта this = объект. В стрелочной функции this = из внешней области."
+    },
+    {
+      "type": "heading",
+      "content": "new — оператор создания"
+    },
+    {
+      "type": "text",
+      "content": "Без <code>new</code> класс не работает как класс. Оператор <code>new</code> делает 4 вещи: (1) создаёт пустой объект, (2) привязывает <code>this</code> к нему, (3) вызывает constructor, (4) возвращает объект. Если вызвать класс без new — получишь ошибку 'Class constructor cannot be invoked without new'."
+    },
+    {
+      "type": "code",
+      "content": "class Point {\n  constructor(x, y) {\n    this.x = x;\n    this.y = y;\n  }\n}\n\n// Правильно — с new:\nconst p1 = new Point(3, 4);  // this = новый объект { x:3, y:4 }\nconsole.log(p1.x);            // 3\n\n// Неправильно — без new:\n// const p2 = Point(3, 4);   // TypeError!\n// 'Class constructor Point cannot be invoked without new'\n\n// new создаёт НОВЫЙ объект каждый раз:\nconst p3 = new Point(1, 2);\nconst p4 = new Point(1, 2);\nconsole.log(p3 === p4);  // false — разные объекты!"
+    },
+    {
+      "type": "predict",
+      "code": "class Dog {\n  constructor(name) {\n    this.name = name;\n  }\n}\nconst d1 = new Dog(\"Rex\");\nconst d2 = new Dog(\"Rex\");\nconsole.log(d1 === d2);",
+      "question": "Что выведется?",
+      "options": [
+        "true",
+        "false",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "false. Каждый new создаёт НОВЫЙ объект. Два объекта с одинаковыми данными — это разные объекты в памяти. Строгое сравнение === сравнивает ссылки, а не содержимое."
+    },
+    {
+      "type": "heading",
+      "content": "Методы класса"
+    },
+    {
+      "type": "text",
+      "content": "Методы — это функции, определённые внутри класса. Они доступны через экземпляр: <code>obj.method()</code>. Не нужно писать <code>function</code> — просто имя и тело. Методы могут вызывать друг друга через <code>this.otherMethod()</code>."
+    },
+    {
+      "type": "code",
+      "content": "class BankAccount {\n  constructor(owner, balance = 0) {\n    this.owner = owner;\n    this.balance = balance;\n  }\n\n  deposit(amount) {\n    this.balance += amount;  // добавляем к балансу\n    return this.balance;\n  }\n\n  withdraw(amount) {\n    if (amount > this.balance) {\n      return \"Insufficient funds\";  // проверяем достаточно ли\n    }\n    this.balance -= amount;\n    return this.balance;\n  }\n\n  info() {\n    return `${this.owner}: ${this.balance}`;\n  }\n}\n\nconst acc = new BankAccount(\"Alice\", 100);\nacc.deposit(50);     // баланс 150\nacc.withdraw(200);   // \"Insufficient funds\"\nconsole.log(acc.info());  // Alice: 150"
+    },
+    {
+      "type": "heading",
+      "content": "static — методы на классе, не на экземпляре"
+    },
+    {
+      "type": "text",
+      "content": "<code>static</code> метод принадлежит классу, а не экземпляру. Вызывается как <code>Class.method()</code>, а не <code>obj.method()</code>. Внутри static метода <code>this</code> указывает на сам класс. Используют для утилит, фабрик, счётчиков созданных экземпляров."
+    },
+    {
+      "type": "code",
+      "content": "class MathHelper {\n  static add(a, b) {\n    return a + b;  // this тут не нужен — это утилита\n  }\n\n  static PI = 3.14159;  // static поле\n}\n\nconsole.log(MathHelper.add(2, 3));  // 5 — вызов на классе\n// const m = new MathHelper();\n// m.add(2, 3);  // Ошибка! add не на экземпляре"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Потеря контекста this при передаче метода как колбэка.</b> Если передать метод в setTimeout или колбэк, this будет undefined! <code>setTimeout(obj.method, 100)</code> — метод потеряет привязку. Решение: оберни в стрелочную <code>setTimeout(() => obj.method(), 100)</code> или используй <code>.bind(obj)</code>. Это классический баг, который ловят все новички."
+    },
+    {
+      "type": "code",
+      "content": "class Timer {\n  constructor() {\n    this.seconds = 0;\n  }\n\n  tick() {\n    this.seconds++;  // this.seconds — нужен this!\n    console.log(this.seconds);\n  }\n}\n\nconst t = new Timer();\n\n// БАГ: this потерян!\n// setTimeout(t.tick, 100);  // TypeError: Cannot read 'seconds' of undefined\n\n// РЕШЕНИЕ 1: стрелочная функция\nsetTimeout(() => t.tick(), 100);  // this = t (через замыкание)\n\n// РЕШЕНИЕ 2: bind\nsetTimeout(t.tick.bind(t), 100);  // this = t (явная привязка)"
+    },
+    {
+      "type": "heading",
+      "content": "instanceof — проверка экземпляра"
+    },
+    {
+      "type": "text",
+      "content": "<code>instanceof</code> проверяет, создан ли объект через <code>new</code> конкретного класса. Возвращает true если класс есть в цепочке прототипов объекта. Полезен для проверки типа при работе с разными классами."
+    },
+    {
+      "type": "code",
+      "content": "class Animal {}\nclass Dog extends Animal {}\n\nconst d = new Dog();\n\nconsole.log(d instanceof Dog);     // true — создан через Dog\nconsole.log(d instanceof Animal);  // true — Dog наследует Animal\nconsole.log(d instanceof Object);  // true — все объекты наследуют Object"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>class</code> вместо функций-конструкторов — это современный синтаксис (ES2015+). Классы читаются легче, а под капотом работают через те же прототипы. Это 'синтаксический сахар', но очень удобный."
+    },
+    {
+      "type": "heading",
+      "content": "Геттеры и сеттеры (введение)"
+    },
+    {
+      "type": "text",
+      "content": "Можно сделать свойство, которое выглядит как обычное, но при обращении вызывает функцию. Для этого есть <code>get</code> и <code>set</code>. Доступ как к свойству (<code>obj.fullName</code>), а внутри выполняется код. Про них подробно в следующем уроке."
+    },
+    {
+      "type": "code",
+      "content": "class Person {\n  constructor(first, last) {\n    this.first = first;\n    this.last = last;\n  }\n\n  // Геттер — вызывается при ЧТЕНИИ obj.fullName\n  get fullName() {\n    return `${this.first} ${this.last}`;\n  }\n\n  // Сеттер — вызывается при ЗАПИСИ obj.fullName = \"...\"\n  set fullName(name) {\n    const [f, l] = name.split(\" \");\n    this.first = f;\n    this.last = l;\n  }\n}\n\nconst p = new Person(\"Alice\", \"Smith\");\nconsole.log(p.fullName);  // Alice Smith — как свойство, но это метод!\np.fullName = \"Bob Jones\";\nconsole.log(p.first);     // Bob"
+    },
+    {
+      "type": "heading",
+      "content": "Приватные поля (#)"
+    },
+    {
+      "type": "text",
+      "content": "Поля с решёткой <code>#</code> в начале доступны только внутри класса. Снаружи к ним не подключиться — это <b>настоящая</b> инкапсуляция. Подчёркивание (_name) — это 'не трогай, пожалуйста', а #name — 'не можешь трогать физически'."
+    },
+    {
+      "type": "code",
+      "content": "class Account {\n  #pin;  // приватное поле — снаружи недоступно\n\n  constructor(pin) {\n    this.#pin = pin;  // внутри класса доступ есть\n  }\n\n  checkPin(input) {\n    return input === this.#pin;  // проверка внутри класса\n  }\n}\n\nconst acc = new Account(1234);\nconsole.log(acc.checkPin(1234));  // true\n// console.log(acc.#pin);          // SyntaxError!\n// console.log(acc.pin);           // undefined — не существует снаружи"
+    },
+    {
+      "type": "note",
+      "content": "Каждый экземпляр класса — независимый объект с собственными свойствами. Изменение одного экземпляра никогда не влияет на другой. Это фундамент ООП: объекты инкапсулируют своё состояние."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай класс Person с constructor(name), который сохраняет name в this.name. Создай new Person(\"Amber\") и выведи p.name (ожидаемый вывод: Amber)",
+      "starter": "class Person {\n  constructor(name) { this.name = name; }\n}\n// const p = new Person(\"Amber\");\n// console.log(p.name);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Person\\b",
+          "message": "Объяви класс Person"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bconstructor\\b",
+          "message": "Используй constructor"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber",
+          "message": "p.name = \"Amber\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Person {\n  constructor(name) {\n    this.name = name;\n  }\n}\nconst p = new Person(\"Amber\");\nconsole.log(p.name);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай класс Cat с constructor(name) и методом speak(), возвращающим 'Мяу!'. Создай new Cat(\"Barsik\") и выведи speak() (ожидаемый вывод: Мяу!)",
+      "starter": "class Cat {\n  constructor(name) { this.name = name; }\n  speak() { return \"Мяу!\"; }\n}\n// console.log(new Cat(\"Barsik\").speak());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Cat\\b",
+          "message": "Объяви класс Cat"
+        },
+        {
+          "kind": "has-call",
+          "name": "speak"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Мяу!",
+          "message": "Cat.speak() = \"Мяу!\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Cat {\n  constructor(name) {\n    this.name = name;\n  }\n  speak() {\n    return \"Мяу!\";\n  }\n}\nconsole.log(new Cat(\"Barsik\").speak());"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай класс Circle с constructor(r) и методом area(), возвращающим Math.PI * r * r. Создай new Circle(1) и выведи area().toFixed(0) (ожидаемый вывод: 3)",
+      "starter": "class Circle {\n  constructor(r) { this.r = r; }\n  area() { return Math.PI * this.r * this.r; }\n}\n// console.log(new Circle(1).area().toFixed(0));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "area\\(\\)",
+          "message": "Объяви метод area()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "Circle(1).area() ≈ 3.14 → \"3\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Circle {\n  constructor(r) { this.r = r; }\n  area() { return Math.PI * this.r * this.r; }\n}\nconsole.log(new Circle(1).area().toFixed(0));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай класс Animal с constructor(name), который сохраняет name. Создай new Animal(\"Dog\") и выведи a.speak(), где speak возвращает name + ' sound' (ожидаемый вывод: Dog sound)",
+      "starter": "class Animal {\n  constructor(name) { this.name = name; }\n  speak() { return this.name + \" sound\"; }\n}\n// const a = new Animal(\"Dog\");\n// console.log(a.speak());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Animal\\b",
+          "message": "Объяви класс Animal"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Dog sound",
+          "message": "Animal.speak() = \"Dog sound\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "class Animal {\n  constructor(name) { this.name = name; }\n  speak() { return this.name + \" sound\"; }\n}\nconst a = new Animal(\"Dog\");\nconsole.log(a.speak());"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай класс Counter с конструктором (count = 0) и методом inc(), который увеличивает count на 1 и возвращает его. Вызови inc() дважды и выведи c.count (ожидаемый вывод: 2)",
+      "starter": "class Counter {\n  constructor() { this.count = 0; }\n  inc() { this.count++; return this.count; }\n}\n// const c = new Counter();\n// c.inc(); c.inc();\n// console.log(c.count);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Counter\\b",
+          "message": "Объяви класс Counter"
+        },
+        {
+          "kind": "stdout",
+          "equals": "2",
+          "message": "Counter.count = 2 после двух inc()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Counter {\n  constructor() { this.count = 0; }\n  inc() { this.count++; return this.count; }\n}\nconst c = new Counter();\nc.inc();\nc.inc();\nconsole.log(c.count);"
+    }
+  ],
+  "recap": [
+    "class — это чертёж, new создаёт экземпляр (дом по чертежу).",
+    "constructor — план сборки, вызывается автоматически при new.",
+    "this — сам объект, у каждого экземпляра свой.",
+    "Без new класс выбрасывает TypeError.",
+    "Методы — функции внутри класса, вызываются через obj.method().",
+    "static — метод на классе, не на экземпляре."
+  ],
+  "quiz": [
+    {
+      "q": "Что делает new?",
+      "options": [
+        "Ничего",
+        "Создаёт объект, вызывает constructor, возвращает его",
+        "Удаляет объект",
+        "Клонирует класс"
+      ],
+      "answer": 1,
+      "explain": "new создаёт пустой объект, привязывает this, вызывает constructor, возвращает объект."
+    },
+    {
+      "q": "Что произойдёт без new при вызове класса?",
+      "options": [
+        "Вернёт undefined",
+        "Сработает как обычно",
+        "TypeError",
+        "Создаст объект"
+      ],
+      "answer": 2,
+      "explain": "Class constructor cannot be invoked without new — TypeError."
+    },
+    {
+      "q": "Что такое this в методе?",
+      "options": [
+        "Класс",
+        "Объект, у которого вызвали метод",
+        "Глобальный объект",
+        "undefined всегда"
+      ],
+      "answer": 1,
+      "explain": "В методе объекта this указывает на сам объект."
+    }
+  ]
+}

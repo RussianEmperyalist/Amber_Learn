@@ -1,0 +1,320 @@
+{
+  "id": "javascript-13-destructuring",
+  "title": "Деструктуризация: быстрая распаковка чемодана",
+  "goal": "Разворачивать массивы и объекты в переменные, использовать значения по умолчанию и переименование",
+  "prereq": [
+    "javascript-07-arrays"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты приехал из путешествия. В чемодане — одежда, документы, сувениры, зарядка. Тебе нужны только документы и зубная щётка. Ты <b>распаковываешь чемодан</b>, доставая нужные вещи и раскладывая по местам. <b>Деструктуризация</b> — это ровно то же самое для данных: берёшь объект или массив и 'распаковываешь' его содержимое в отдельные переменные за одну строку."
+    },
+    {
+      "type": "text",
+      "content": "<b>Деструктуризация</b> (destructuring) — синтаксис, который позволяет доставать значения из массивов и объектов и присваивать их переменным одновременно. Вместо <code>const a = arr[0]; const b = arr[1]</code> пишешь <code>const [a, b] = arr</code>. Вместо <code>const name = user.name; const age = user.age</code> — <code>const { name, age } = user</code>. Меньше кода, больше читаемости."
+    },
+    {
+      "type": "heading",
+      "content": "Деструктуризация массивов"
+    },
+    {
+      "type": "text",
+      "content": "Массив — упорядоченная коллекция. Деструктуризация массива работает <b>по позиции</b>: первый элемент → первая переменная, второй → вторая. Порядок важен! Если элементов меньше, чем переменных — лишние получат undefined."
+    },
+    {
+      "type": "code",
+      "content": "// Вместо:\nconst coords = [10, 20, 30];\nconst x = coords[0];\nconst y = coords[1];\n\n// Пишем:\nconst [x, y] = [10, 20, 30];\nconsole.log(x);  // 10\nconsole.log(y);  // 20\n\n// Третий элемент игнорируется — мы объявили только две переменные\n\n// Можно пропустить элемент:\nconst [first, , third] = [10, 20, 30];\nconsole.log(first);  // 10\nconsole.log(third);  // 30 — пропустили индекс 1"
+    },
+    {
+      "type": "predict",
+      "code": "const [a, b, c] = [1, 2, 3];\nconsole.log(a + c);",
+      "question": "Что выведется?",
+      "options": [
+        "3",
+        "4",
+        "5",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "a = 1 (первый элемент), c = 3 (третий). 1 + 3 = 4. Деструктуризация массива привязывает к ПОЗИЦИИ: [0], [1], [2]."
+    },
+    {
+      "type": "heading",
+      "content": "Обмен значений через деструктуризацию"
+    },
+    {
+      "type": "text",
+      "content": "Классический трюк: обмен значений двух переменных без третьей. <code>[a, b] = [b, a]</code> — JS сначала вычисляет правую часть (создаёт временный массив), затем присваивает. Без деструктуризации нужен temp-переменная."
+    },
+    {
+      "type": "code",
+      "content": "let a = 1;\nlet b = 2;\n\n// Старый способ — с временной переменной:\nlet temp = a;\na = b;\nb = temp;\n\n// Новый способ — деструктуризацией:\n[a, b] = [b, a];\nconsole.log(a, b);  // 2 1\n\n// Работает потому что правая часть [b, a] вычисляется ДО присвоения"
+    },
+    {
+      "type": "heading",
+      "content": "Деструктуризация объектов"
+    },
+    {
+      "type": "text",
+      "content": "В отличие от массивов, у объектов нет порядка — есть <b>ключи</b>. Поэтому имена переменных должны совпадать с ключами объекта. Порядок не важен: можно указать в любом порядке. Достаём 'документы из чемодана' — не важно где они лежали, важно имя на наклейке."
+    },
+    {
+      "type": "code",
+      "content": "const user = {\n  name: \"Alice\",\n  age: 25,\n  city: \"Moscow\"\n};\n\n// Имена переменных = имена ключей\nconst { name, age } = user;\nconsole.log(name);  // Alice\nconsole.log(age);   // 25\n\n// Порядок НЕ важен — всё равно будет верно:\nconst { age, name } = user;\nconsole.log(name);  // Alice\nconsole.log(age);   // 25\n\n// Лишние свойства просто игнорируются — city не распакован"
+    },
+    {
+      "type": "predict",
+      "code": "const user = { name: \"Bob\", age: 30 };\nconst { age, name } = user;\nconsole.log(name, age);",
+      "question": "Что выведется?",
+      "options": [
+        "Bob 30",
+        "30 Bob",
+        "undefined undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "Порядок объявления переменных не важен — { age, name } достанет name из user.name и age из user.age. Результат: Bob 30."
+    },
+    {
+      "type": "heading",
+      "content": "Переименование переменных"
+    },
+    {
+      "type": "text",
+      "content": "Если хочешь дать переменной другое имя, используй синтаксис <code>{ ключ: новоеИмя }</code>. Это полезно, когда имя ключа слишком длинное или конфликтует с существующей переменной."
+    },
+    {
+      "type": "code",
+      "content": "const product = {\n  productName: \"Laptop\",\n  productPrice: 999\n};\n\n// Переименовываем при деструктуризации:\nconst {\n  productName: name,   // productName → name\n  productPrice: price  // productPrice → price\n} = product;\n\nconsole.log(name);   // Laptop\nconsole.log(price);  // 999"
+    },
+    {
+      "type": "heading",
+      "content": "Значения по умолчанию"
+    },
+    {
+      "type": "text",
+      "content": "Если свойство или элемент отсутствует (undefined), переменная получит undefined. Чтобы задать запасное значение, используй синтаксис <code>= по умолчанию</code>. Значение по умолчанию сработает, если свойство === undefined, но НЕ сработает для null."
+    },
+    {
+      "type": "code",
+      "content": "const config = {\n  host: \"localhost\"\n  // port отсутствует!\n};\n\n// port не найден → используем значение по умолчанию\nconst { host, port = 3000 } = config;\nconsole.log(host);  // localhost\nconsole.log(port);  // 3000 — из defaults\n\n// Для массива тоже работает:\nconst [a, b = 99] = [1];\nconsole.log(b);     // 99 — второго элемента нет\n\n// ВАЖНО: default НЕ срабатывает для null!\nconst obj = { count: null };\nconst { count = 10 } = obj;\nconsole.log(count); // null — а не 10!"
+    },
+    {
+      "type": "tip",
+      "content": "Значения по умолчанию работают только для <b>undefined</b>. Если поле null, дефолт не сработает. Для надёжной защиты используй оператор <code>??</code>: <code>const val = data.value ?? 'default'</code>."
+    },
+    {
+      "type": "warning",
+      "content": "<b>Деструктуризация null или undefined вызывает TypeError.</b> Если функция вернула undefined вместо объекта, <code>const { name } = undefined</code> — падение. Причина: нельзя 'распаковать' несуществующий чемодан. Защита: <code>const { name } = obj || {}</code> или optional chaining перед деструктуризацией."
+    },
+    {
+      "type": "code",
+      "content": "// Опасно:\nconst result = null;\n// const { value } = result;  // TypeError: Cannot destructure property...\n\n// Безопасно — fallback на пустой объект:\nconst { value } = result || {};\nconsole.log(value);  // undefined — без ошибки\n\n// Или проверка перед деструктуризацией:\nif (result) {\n  const { value } = result;\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Деструктуризация в параметрах функции"
+    },
+    {
+      "type": "text",
+      "content": "Деструктуризация особенно удобна в параметрах функций: сразу достаёшь нужные поля из объекта-аргумента. Код становится короче и понятнее — видно, какие свойства используются внутри."
+    },
+    {
+      "type": "code",
+      "content": "// Функция принимает ОБЪЕКТ и сразу распаковывает нужные поля\nfunction greet({ name, age = 0 }) {\n  console.log(`${name}, ${age} лет`);\n}\n\ngreet({ name: \"Eve\", age: 30 });  // Eve, 30 лет\ngreet({ name: \"Tom\" });           // Tom, 0 лет — age по умолчанию\n\n// С массивом:\nfunction printPoint([x, y]) {\n  console.log(`(${x}, ${y})`);\n}\nprintPoint([3, 4]);  // (3, 4)"
+    },
+    {
+      "type": "heading",
+      "content": "Вложенная деструктуризация"
+    },
+    {
+      "type": "text",
+      "content": "Объекты могут быть вложенными (объект внутри объекта). Для доступа к глубоким свойствам можно делать цепочку фигурных скобок: <code>{ user: { address: { city } } }</code>. Синтаксис громоздкий, но работает."
+    },
+    {
+      "type": "code",
+      "content": "const data = {\n  user: {\n    name: \"Bob\",\n    address: {\n      city: \"SPb\",\n      zip: \"190000\"\n    }\n  }\n};\n\n// Вложенная деструктуризация:\nconst { user: { address: { city } } } = data;\nconsole.log(city);  // SPb\n\n// Эквивалент без деструктуризации:\n// const city = data.user.address.city;"
+    },
+    {
+      "type": "note",
+      "content": "for...of с деструктуризацией: <code>for (const [key, value] of Object.entries(obj))</code> — удобный перебор пар ключ-значение объекта. Работает потому что Object.entries возвращает массив массивов [[key, value], ...]."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Из объекта { name: \"Amber\", age: 25 } достань name и age через деструктуризацию и выведи оба значения (ожидаемый вывод: Amber 25)",
+      "starter": "const { name, age } = { name: \"Amber\", age: 25 };\n// console.log(name, age);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "const\\s*\\{\\s*name\\s*,\\s*age\\s*\\}",
+          "message": "Деструктуризация объекта"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber 25",
+          "message": "name=\"Amber\", age=25"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const { name, age } = { name: \"Amber\", age: 25 };\nconsole.log(name, age);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Из объекта { name: \"Bob\", age: 30, city: \"SPb\" } достань name и city через деструктуризацию. Выведи в формате 'Bob, SPb'",
+      "starter": "const user = { name: \"Bob\", age: 30, city: \"SPb\" };\n// const { name, city } = user;\n// console.log(name + \", \" + city);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "const\\s*\\[first,\\s*second,\\s*third\\]",
+          "message": "Деструктуризация массива"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1 2 3",
+          "message": "first=1, second=2, third=3"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const [first, second, third] = [1, 2, 3];\nconsole.log(first, second, third);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Используй деструктуризацию с переименованием: достань name как userName и age как userAge. Выведи оба значения на отдельных строках (Alice и 25)",
+      "starter": "const user = { name: \"Alice\", age: 25 };\n// const { name: userName, age: userAge } = user;\n// console.log(userName);\n// console.log(userAge);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "=\\s*10",
+          "message": "Значение по умолчанию для b"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "5 10",
+          "message": "a=5, b=10 (по умолчанию)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const { a, b = 10 } = { a: 5 };\nconsole.log(a, b);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент пытался деструктурировать null. Исправь код, добавив защиту через || {} чтобы не получить TypeError.",
+      "starter": "const data = null;\nconst { port } = data;\nconsole.log(port);",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.rest",
+          "message": "Rest-деструктуризация"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1 2,3,4",
+          "message": "x=1, rest=[2,3,4]"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const [x, ...rest] = [1, 2, 3, 4];\nconsole.log(x, rest.join(\",\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Напиши функцию getCity(data), которая деструктуризацией достаёт city из data.user.address. Вызови с { user: { address: { city: \"Kazan\" } } } и выведи результат.",
+      "starter": "// function getCity(data) {\n//   const { user: { address: { city } } } = data;\n//   return city;\n// }\n// console.log(getCity({ user: { address: { city: \"Kazan\" } } }));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "name:\\s*n",
+          "message": "Псевдоним при деструктуризации"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "test 2",
+          "message": "n=\"test\", 2 ключа в rest"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const { name: n, ...rest } = { name: \"test\", age: 20, city: \"Msk\" };\nconsole.log(n, Object.keys(rest).length);"
+    }
+  ],
+  "recap": [
+    "Деструктуризация — распаковка данных в переменные, как чемодан.",
+    "Массивы: const [a, b] = arr — привязка по позиции (порядок важен!).",
+    "Объекты: const { name, age } = user — привязка по имени ключа (порядок не важен).",
+    "Переименование: const { name: newName } = user.",
+    "Значения по умолчанию: const { port = 3000 } = config — для undefined, но НЕ для null.",
+    "Деструктуризация null/undefined вызывает TypeError — защищай через || {}."
+  ],
+  "quiz": [
+    {
+      "q": "Что выведет const { a, b } = { b: 1, a: 2 }; console.log(a)?",
+      "options": [
+        "undefined",
+        "1",
+        "2",
+        "Ошибка"
+      ],
+      "answer": 2,
+      "explain": "Порядок в объекте не важен — a получает значение ключа a = 2."
+    },
+    {
+      "q": "Как переименовать переменную при деструктуризации объекта?",
+      "options": [
+        "{ name -> userName }",
+        "{ name: userName }",
+        "{ name as userName }",
+        "{ name = userName }"
+      ],
+      "answer": 1,
+      "explain": "Синтаксис: { ключ: новоеИмя }."
+    },
+    {
+      "q": "Что произойдёт при const { x } = null?",
+      "options": [
+        "x будет undefined",
+        "x будет null",
+        "TypeError",
+        "Работает нормально"
+      ],
+      "answer": 2,
+      "explain": "Деструктуризация null/undefined вызывает TypeError — нельзя распаковать несуществующий объект."
+    }
+  ]
+}

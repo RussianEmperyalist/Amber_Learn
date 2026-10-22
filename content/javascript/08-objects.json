@@ -1,0 +1,298 @@
+{
+  "id": "javascript-08-objects",
+  "title": "Объекты: шкаф с подписанными ящиками",
+  "goal": "Описывать сложные данные в одной переменной через объекты, понимать разницу между примитивами и ссылками",
+  "prereq": [
+    "javascript-07-arrays"
+  ],
+  "duration": 25,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Тебе нужно описать человека: имя, возраст, рост, город. Без объектов — четыре переменные: <code>let name = \"...\"; let age = 25; ...</code>. А если 1000 человек? Ты пишешь <code>name1, age1, name2, age2...</code> — ад. С объектом — <code>let person = { name: \"Ann\", age: 25, ... }</code> — один ключ, одна коробка. Один объект — <b>один человек</b>. А массив объектов — <b>список людей</b>."
+    },
+    {
+      "type": "text",
+      "content": "<b>Объект</b> — это коллекция пар <code>ключ: значение</code>. Ключ — всегда строка (или Symbol), значение — любой тип. Объект можно представить как <b>шкаф с подписанными ящиками</b>: каждый ящик имеет наклейку (ключ), а внутри лежит что угодно (значение). Обратиться к содержимому — открыть ящик по наклейке."
+    },
+    {
+      "type": "code",
+      "content": "// Объект в фигурных скобках: ключ: значение\nconst user = {\n  name: \"Анна\",\n  age: 25,\n  city: \"Москва\"\n};\n\n// Доступ через точку: пользователь.ключ\nconsole.log(user.name);   // Анна\nconsole.log(user.age);    // 25\nconsole.log(user.city);   // Москва\n\n// Ключи — строки (кавычки можно писать, можно не писать):\nconst user2 = {\n  \"name\": \"Борис\",     // с кавычками\n  age: 30              // без кавычек — тоже работает\n};\nconsole.log(user2.name);  // Борис"
+    },
+    {
+      "type": "heading",
+      "content": "Доступ через точку и через скобки"
+    },
+    {
+      "type": "text",
+      "content": "Два способа достать значение: <code>obj.key</code> (точка) и <code>obj[\"key\"]</code> (квадратные скобки). Точка — когда ключ известен в коде и не содержит пробелов. Скобки — когда ключ <b>динамический</b> (пришёл из переменной) или содержит спецсимволы. Оба возвращают значение: если ключа нет — undefined."
+    },
+    {
+      "type": "code",
+      "content": "const config = {\n  theme: \"dark\",\n  fontSize: 14\n};\n\n// Точка — просто и читаемо:\nconsole.log(config.theme);     // dark\n\n// Скобки — когда ключ из переменной (динамический):\nconst key = \"fontSize\";\nconsole.log(config[key]);      // 14 — config[\"fontSize\"] = config.fontSize\n\n// Скобки нужны, когда ключ содержит пробел или спецсимвол:\nconst obj = {\n  \"first-name\": \"Ann\"\n};\nconsole.log(obj[\"first-name\"]);  // Ann — через точку не получится!"
+    },
+    {
+      "type": "predict",
+      "code": "const obj = { a: 1, b: 2 };\nconsole.log(obj.c);",
+      "question": "Что выведет код?",
+      "options": [
+        "undefined",
+        "null",
+        "Ошибка",
+        "0"
+      ],
+      "answer": 0,
+      "explain": "Ключа 'c' нет в объекте — JavaScript возвращает undefined. Это не ошибка и не null, а стандартное поведение: свойство просто не найдено."
+    },
+    {
+      "type": "heading",
+      "content": "Изменение и добавление свойств"
+    },
+    {
+      "type": "text",
+      "content": "Объект — <b>изменяемый</b>. Можно менять существующие свойства, добавлять новые, удалять. Это делает объекты удобными для накопления данных: создал пустой объект — заполнял по мере поступления. Добавление нового свойства — просто присвоение. Удаление — оператор <code>delete</code>."
+    },
+    {
+      "type": "code",
+      "content": "const car = { brand: \"Toyota\", year: 2020 };\n\n// Изменить существующий:\ncar.year = 2023;\nconsole.log(car.year);  // 2023\n\n// Добавить новый:\ncar.color = \"red\";\nconsole.log(car);       // { brand: \"Toyota\", year: 2023, color: \"red\" }\n\n// Удалить:\ndelete car.color;\nconsole.log(car);       // { brand: \"Toyota\", year: 2023 }\n\n// Проверить, есть ли свойство:\nconsole.log(\"brand\" in car);  // true\nconsole.log(\"color\" in car);  // false — удалён"
+    },
+    {
+      "type": "heading",
+      "content": "Примитивы vs объекты: копия vs ссылка"
+    },
+    {
+      "type": "text",
+      "content": "Примитивы (числа, строки, boolean, null, undefined) — это <b>значения</b>. Когда ты присваиваешь <code>b = a</code>, JS копирует значение: <code>b</code> и <code>a</code> независимы. Объекты — это <b>ссылки</b>. Когда <code>b = a</code>, оба указывают на ОДНОТ тот же объект в памяти. Изменишь через b — изменится и через a. Это <b>источник 90% багов с объектами</b>."
+    },
+    {
+      "type": "code",
+      "content": "// Примитивы — копируются по ЗНАЧЕНИЮ:\nlet a = 10;\nlet b = a;  // b = 10 (копия)\nb = 20;     // b стал 20\nconsole.log(a);  // 10 — a НЕ изменился\n\n// Объекты — копируются по ССЫЛКЕ:\nlet obj1 = { x: 10 };\nlet obj2 = obj1;  // obj2 = ссылку на ТОТ ЖЕ объект\nobj2.x = 20;      // меняем через obj2\nconsole.log(obj1.x);  // 20 — obj1 тоже изменился!\n// Потому что obj1 и obj2 — один и тот же объект в памяти"
+    },
+    {
+      "type": "predict",
+      "code": "let a = { value: 5 };\nlet b = a;\nb.value = 10;\nconsole.log(a.value);",
+      "question": "Что выведет?",
+      "options": [
+        "5",
+        "10",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "b = a копирует ссылку, не объект. a и b — один объект. Изменение через b меняет и a. Результат: 10. Это классический баг новичка: думает, что 'скопировал', а на самом деле получил вторую ссылку."
+    },
+    {
+      "type": "warning",
+      "content": "Попытка обратиться к свойству <b>несуществующего объекта</b> — ошибка. Если переменная undefined, то <code>user.name</code> вызовет <code>TypeError: Cannot read properties of undefined</code>. Причина: объект не создан или функция вернула undefined. Всегда проверяй: <code>if (obj && obj.key)</code> или <code>?.</code> (optional chaining): <code>user?.name</code> — если user undefined, вернётся undefined вместо ошибки."
+    },
+    {
+      "type": "code",
+      "content": "// Опасная ситуация:\nlet user;\n// user = { name: \"Ann\" };\n\n// user undefined — обращение к свойству = TypeError!\n// console.log(user.name);  // TypeError!\n\n// Безопасный вариант — optional chaining:\nconsole.log(user?.name);  // undefined — без ошибки!\n\n// Второй вариант — проверка перед обращением:\nif (user) {\n  console.log(user.name);\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Вложенные объекты"
+    },
+    {
+      "type": "text",
+      "content": "Значение свойства может быть <b>любым</b> типом, включая другой объект. Это позволяет строить иерархии: у человека есть адрес, у адреса — город, у города — координаты. Доступ через цепочку точек: <code>user.address.city</code>. Но если адрес undefined — ошибка. Используй optional chaining <code>?.</code> для безопасного доступа."
+    },
+    {
+      "type": "code",
+      "content": "const user = {\n  name: \"Анна\",\n  address: {\n    city: \"Москва\",\n    zip: \"123456\"\n  }\n};\n\n// Доступ через цепочку точек:\nconsole.log(user.address.city);  // Москва\n\n// Optional chaining — безопасно:\nconsole.log(user?.address?.city);   // Москва\nconsole.log(user?.phone?.number);   // undefined — нет ошибки!\n\n// Без optional chaining (опасно):\n// console.log(user.phone.number);  // TypeError — user.phone undefined"
+    },
+    {
+      "type": "tip",
+      "content": "Для безопасного доступа к вложенным свойствам используй optional chaining: <code>obj?.key?.nested</code>. Если на пути встречается undefined — результат undefined, вместо ошибки. Это современный стандарт, поддерживается во всех браузерах."
+    },
+    {
+      "type": "heading",
+      "content": "for...in — перебор свойств"
+    },
+    {
+      "type": "text",
+      "content": "Для перебора ключей объекта используется цикл <code>for...in</code>. Он проходит по всем перечисляемым свойствам, включая унаследованные. Для чистого перебора своих свойств используй <code>Object.keys(obj)</code> — возвращает массив ключей."
+    },
+    {
+      "type": "code",
+      "content": "const user = { name: \"Ann\", age: 25, city: \"MSK\" };\n\n// for...in — по ключам:\nfor (const key in user) {\n  console.log(key + \": \" + user[key]);\n  // name: Ann, age: 25, city: MSK\n}\n\n// Object.keys — массив ключей:\nconsole.log(Object.keys(user));  // [\"name\", \"age\", \"city\"]\n\n// Object.values — массив значений:\nconsole.log(Object.values(user));  // [\"Ann\", 25, \"MSK\"]\n\n// Object.entries — пары [ключ, значение]:\nfor (const [key, value] of Object.entries(user)) {\n  console.log(key, value);\n}"
+    },
+    {
+      "type": "note",
+      "content": "Важное отличие: массивы перебирают через for/for...of, объекты — через for...in или Object.keys(). for...in перебирает ВСЕ перечисляемые свойства, включая унаследованные. Для массивов это может вызвать баги — используй Array.prototype.hasOwnProperty.call(arr, key) или просто не применяй for...in к массивам."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай объект person с name = \"Amber\" и age = 25. Добавь свойство city = \"Москва\". Выведи name и city (ожидаемый вывод: Amber Москва)",
+      "starter": "const person = { name: \"Amber\", age: 25 };\nperson.city = \"Москва\";\n// console.log(person.name, person.city);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bconst\\s+person\\s*=",
+          "message": "Объяви объект person"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber Москва",
+          "message": "person.name и person.city"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const person = { name: \"Amber\", age: 25 };\nperson.city = \"Москва\";\nconsole.log(person.name, person.city);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай объект car с свойствами brand: \"Toyota\", model: \"Camry\", year: 2023. Добавь свойство color: \"red\" и выведи значение color (ожидаемый вывод: red)",
+      "starter": "const car = { brand: \"Toyota\", model: \"Camry\", year: 2023 };\n// Добавь color и выведи car.color\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "color\\s*=",
+          "message": "Добавь свойство color"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "red",
+          "message": "car.color = \"red\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const car = { brand: \"Toyota\", model: \"Camry\", year: 2023 };\ncar.color = \"red\";\nconsole.log(car.color);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Дан объект user = { name: \"Ann\", address: { city: \"MSK\" } }. Выведи город через вложенный доступ (ожидаемый вывод: MSK)",
+      "starter": "const user = { name: \"Ann\", address: { city: \"MSK\" } };\n// Выведи город через user.address.city\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.address\\.city",
+          "message": "Вложенный доступ"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "MSK",
+          "message": "user.address.city = \"MSK\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const user = { name: \"Ann\", address: { city: \"MSK\" } };\nconsole.log(user.address.city);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент создал объект и попытался обратиться к несуществующему свойству через точку, но получил TypeError. Исправь, используя optional chaining для безопасного доступа к user.phone (ожидаемый вывод: undefined)",
+      "starter": "const user = { name: \"Ann\" };\nconsole.log(user.phone);",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\?\\.",
+          "message": "Используй optional chaining"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "undefined",
+          "message": "user?.phone = undefined"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const user = { name: \"Ann\" };\nconsole.log(user?.phone);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай объект book с свойствами title: \"JS\", author: \"Amber\", price: 100. Выведи все три свойства в формате 'title: JS, author: Amber, price: 100' через шаблонный литерал",
+      "starter": "const book = { title: \"JS\", author: \"Amber\", price: 100 };\n// Выведи через шаблонный литерал\n",
+      "checks": [
+        {
+          "kind": "has-template-literal"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "title: JS, author: Amber, price: 100",
+          "message": "Шаблонный литерал"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const book = { title: \"JS\", author: \"Amber\", price: 100 };\nconsole.log(`title: ${book.title}, author: ${book.author}, price: ${book.price}`);"
+    }
+  ],
+  "recap": [
+    "Объект — коллекция ключ: значение; аналогия — шкаф с подписанными ящиками.",
+    "Доступ через точку (obj.key) и скобки (obj[key]) — скобки для динамических ключей.",
+    "Примитивы копируются по значению, объекты — по ссылке.",
+    "Изменение через одну ссылку видно через другую — классический баг.",
+    "Для безопасного доступа к вложенным свойствам используй optional chaining: obj?.key.",
+    "undefined при обращении к несуществующему свойству — не ошибка, но TypeError при undefined.key."
+  ],
+  "quiz": [
+    {
+      "q": "Что вернёт { a: 1 }[\"a\"]?",
+      "options": [
+        "undefined",
+        "1",
+        "Ошибка",
+        "null"
+      ],
+      "answer": 1,
+      "explain": "obj[key] — доступ через скобки: ключ 'a' ведёт к значению 1."
+    },
+    {
+      "q": "Что произойдёт при obj?.key?.nested если obj не определён?",
+      "options": [
+        "TypeError",
+        "undefined",
+        "null",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Optional chaining (?.) возвращает undefined, если на пути встречается null или undefined, без ошибки."
+    },
+    {
+      "q": "Что произойдёт при b = a, где a — объект?",
+      "options": [
+        "b получит копию объекта",
+        "b получит ссылку на тот же объект",
+        "Ошибка",
+        "b получит null"
+      ],
+      "answer": 1,
+      "explain": "Объекты копируются по ссылке: a и b указывают на один объект в памяти."
+    }
+  ]
+}

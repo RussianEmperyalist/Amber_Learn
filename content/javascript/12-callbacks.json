@@ -1,0 +1,324 @@
+{
+  "id": "javascript-12-callbacks",
+  "title": "Функции высшего порядка: заказ в ресторане",
+  "goal": "Понять функции как значения, передавать колбэки, использовать map/filter/forEach",
+  "prereq": [
+    "javascript-09-functions"
+  ],
+  "duration": 25,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты заказываешь еду в ресторане. Официант даёт тебе <b>номерок</b> и говорит: 'Когда еда будет готова, мы позвоним на этот номерок'. Ты не сидишь на кухне — ты занимаешься своими делами, а когда еда готова — <b>колбэк срабатывает</b> и ты идёшь есть. <b>Колбэк (callback)</b> — это функция, которую ты передаёшь другой функции, чтобы она вызвала её позже. Ты не контролируешь когда — ты контролируешь что."
+    },
+    {
+      "type": "text",
+      "content": "В JavaScript функции — это <b>значения</b>. Как число 42 можно присвоить переменной, так и функцию можно: <code>const greet = () => console.log('Hi')</code>. Функции можно передавать в другие функции, возвращать из функций, хранить в массивах. Это делает JavaScript <b>языком первого класса функций</b> — и открывает мощнейшие паттерны: колбэки, функции высшего порядка, функциональное программирование."
+    },
+    {
+      "type": "code",
+      "content": "// Функция — это значение, как число или строка\nconst sayHi = function() { console.log(\"Привет!\"); };\nconst sayBye = () => console.log(\"Пока!\");\n\n// Вызов через переменную:\nsayHi();   // Привет!\nsayBye();  // Пока!\n\n// Функция как аргумент (колбэк):\nfunction doTwice(fn) {  // fn — это функция\n  fn();                // вызываем её дважды\n  fn();\n}\n\ndoTwice(sayHi);  // Привет! Привет!\ndoTwice(() => console.log(\"Бум\"));  // Бум Бум"
+    },
+    {
+      "type": "heading",
+      "content": "Передача функции как аргумент (колбэк)"
+    },
+    {
+      "type": "text",
+      "content": "Функция высшего порядка — это функция, которая принимает функцию как аргумент или возвращает функцию. Это основа JavaScript: <code>forEach</code>, <code>map</code>, <code>filter</code>, <code>setTimeout</code>, <code>addEventListener</code> — всё это функции высшего порядка. Ты говоришь: 'Вот тебе функция, вызови её когда будет нужно'."
+    },
+    {
+      "type": "code",
+      "content": "// applyTwice — функция высшего порядка: принимает функцию\nfunction applyTwice(x, fn) {\n  return fn(fn(x));  // применяем fn дважды\n}\n\nconst double = n => n * 2;\nconst result = applyTwice(3, double);\nconsole.log(result);  // 12\n\n// Как это работает:\n// 1. applyTwice(3, double)\n// 2. fn(fn(3)) → fn(6) → 12\n\n// Аргумент fn — это НЕ строка и НЕ число, а ФУНКЦИЯ"
+    },
+    {
+      "type": "predict",
+      "code": "function applyTwice(x, fn) {\n  return fn(fn(x));\n}\nconst result = applyTwice(3, n => n * 2);\nconsole.log(result);",
+      "question": "Что выведется?",
+      "options": [
+        "6",
+        "9",
+        "12",
+        "Ошибка"
+      ],
+      "answer": 2,
+      "explain": "applyTwice(3, n => n*2): сначала fn(3) = 3*2 = 6, потом fn(6) = 6*2 = 12. Функция применяется дважды."
+    },
+    {
+      "type": "heading",
+      "content": ".forEach — перебор массива"
+    },
+    {
+      "type": "text",
+      "content": "<code>.forEach()</code> — встроенный метод массива, который вызывает колбэк для каждого элемента. Это замена циклу for. Колбэк получает три аргумента: <b>элемент</b>, <b>индекс</b>, <b>сам массив</b>. .forEach не возвращает ничего — это действие, а не вычисление. Если тебе нужно что-то вернуть — используй map или filter."
+    },
+    {
+      "type": "code",
+      "content": "const fruits = [\"apple\", \"banana\", \"cherry\"];\n\n// .forEach — перебор каждого элемента\nfruits.forEach(fruit => {\n  console.log(fruit);  // apple, banana, cherry\n});\n\n// С индексом:\nfruits.forEach((fruit, index) => {\n  console.log(`${index}: ${fruit}`);\n  // 0: apple, 1: banana, 2: cherry\n});\n\n// .forEach НЕ возвращает результат:\nconst result = fruits.forEach(f => f.toUpperCase());\nconsole.log(result);  // undefined"
+    },
+    {
+      "type": "heading",
+      "content": ".map — преобразование каждого элемента"
+    },
+    {
+      "type": "text",
+      "content": "<code>.map()</code> — как конвейер: на входе массив, для каждого элемента применяется функция, на выходе <b>новый массив</b> с преобразованными элементами. Исходный массив не меняется. Это самый частый метод массивов: превратить 'доллары в рубли', 'текст в капс', 'числа в строки'."
+    },
+    {
+      "type": "code",
+      "content": "const nums = [1, 2, 3, 4];\n\n// .map — преобразует каждый элемент\nconst doubled = nums.map(n => n * 2);\nconsole.log(doubled);  // [2, 4, 6, 8]\n\n// .map НЕ меняет оригинал:\nconsole.log(nums);     // [1, 2, 3, 4] — цел!\n\n// Превращаем числа в строки:\nconst strs = [1, 2, 3].map(n => `#${n}`);\nconsole.log(strs);     // [\"#1\", \"#2\", \"#3\"]"
+    },
+    {
+      "type": "heading",
+      "content": ".filter — отбор элементов по условию"
+    },
+    {
+      "type": "text",
+      "content": "<code>.filter()</code> возвращает <b>новый массив</b> с элементами, которые прошли проверку. Колбэк возвращает true — элемент остаётся, false — выбрасывается. Это замена if внутри цикла: вместо 'пройти все и добавить если подходит' — 'отфильтруй'."
+    },
+    {
+      "type": "code",
+      "content": "const nums = [1, 2, 3, 4, 5, 6];\n\n// .filter — отбор только чётных\nconst evens = nums.filter(n => n % 2 === 0);\nconsole.log(evens);  // [2, 4, 6]\n\n// .filter НЕ меняет оригинал:\nconsole.log(nums);   // [1, 2, 3, 4, 5, 6] — цел!\n\n// Фильтруем слова по длине:\nconst words = [\"hi\", \"hello\", \"hey\"];\nconst long = words.filter(w => w.length > 2);\nconsole.log(long);   // [\"hello\"]"
+    },
+    {
+      "type": "predict",
+      "code": "const r = [10, 20, 30].map(x => x / 10).filter(x => x > 1);\nconsole.log(r);",
+      "question": "Что выведется?",
+      "options": [
+        "[1, 2, 3]",
+        "[2, 3]",
+        "[1]",
+        "[10, 20, 30]"
+      ],
+      "answer": 1,
+      "explain": "map(x/10) превращает [10,20,30] в [1, 2, 3]. filter(x>1) оставляет только [2, 3]. Цепочка map→filter работает слева направо."
+    },
+    {
+      "type": "heading",
+      "content": "Цепочка map + filter"
+    },
+    {
+      "type": "text",
+      "content": "Методы массивов можно <b>цеплять</b>: каждый возвращает новый массив, к которому применяется следующий метод. Типичная цепочка: <code>.filter(условие).map(преобразование)</code>. Сначала фильтруем, потом преобразуем — так эффективнее, чем наоборот."
+    },
+    {
+      "type": "code",
+      "content": "const words = [\"apple\", \"banana\", \"avocado\", \"cherry\"];\n\n// Цепочка: сначала фильтр, потом преобразование\nconst result = words\n  .filter(w => w.startsWith(\"a\"))   // [\"apple\", \"avocado\"]\n  .map(w => w.toUpperCase());        // [\"APPLE\", \"AVOCADO\"]\n\nconsole.log(result);\n// Порядок важен: filter → map, а не map → filter\n// Сначала отбираем, потом меняем — быстрее"
+    },
+    {
+      "type": "tip",
+      "content": "Правило: .map() — когда нужна трансформация каждого элемента, .filter() — когда нужно отобрать, .forEach() — когда нужно действие без результата. Цепочка .filter().map() — стандартный паттерн для 'отобрать и преобразовать'."
+    },
+    {
+      "type": "heading",
+      "content": "Колбэк с индексом"
+    },
+    {
+      "type": "text",
+      "content": "Все три метода (forEach, map, filter) передают колбэку три аргумента: элемент, индекс, массив. Индекс полезен для нумерации, а сам массив — для сравнения с соседями. Но лишние аргументы можно просто не указывать — JavaScript их проигнорирует."
+    },
+    {
+      "type": "code",
+      "content": "const arr = [\"a\", \"b\", \"c\"];\n\n// Три аргумента: элемент, индекс, массив\narr.forEach((item, index, array) => {\n  console.log(`${index}: ${item}`);\n  // 0: a, 1: b, 2: c\n});\n\n// map с индексом — нумерация:\nconst numbered = arr.map((item, i) => `${i + 1}. ${item}`);\nconsole.log(numbered);  // [\"1. a\", \"2. b\", \"3. c\"]"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Callback Hell (ад колбэков)</b> — это когда колбэки вложены друг в друга на 5-6 уровней, и код превращается в пирамиду. Классический пример: setTimeout внутри setTimeout внутри setTimeout. Решение: <b>async/await</b> (урок 24) — позволяет писать асинхронный код как синхронный. А для синхронных операций — разбивай на маленькие функции."
+    },
+    {
+      "type": "code",
+      "content": "// Callback Hell — пирамида смерти:\nsetTimeout(() => {\n  console.log(\"1\");\n  setTimeout(() => {\n    console.log(\"2\");\n    setTimeout(() => {\n      console.log(\"3\");\n      setTimeout(() => {\n        console.log(\"4\");  // куда уже вложить...\n      }, 1000);\n    }, 1000);\n  }, 1000);\n}, 1000);\n\n// async/await решает (урок 24):\n// await sleep(1000);\n// console.log(\"1\");\n// await sleep(1000);\n// console.log(\"2\");"
+    },
+    {
+      "type": "heading",
+      "content": "Функция высшего порядка возвращает функцию"
+    },
+    {
+      "type": "text",
+      "content": "Функция высшего порядка может не только принимать, но и <b>возвращать</b> функцию. Это создаёт фабрики функций: создаёшь специализированную функцию из общей. На этом построено замыкание (урок 10) и каринг."
+    },
+    {
+      "type": "code",
+      "content": "// Функция высшего порядка возвращает новую функцию\nfunction createMultiplier(mult) {\n  return function(x) {   // возвращаем функцию\n    return x * mult;     // mult запомнен из замыкания\n  };\n}\n\nconst double = createMultiplier(2);\nconst triple = createMultiplier(3);\nconsole.log(double(5));  // 10\nconsole.log(triple(5));  // 15\n\n// Каждая функция 'помнит' свой mult"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Дан массив [1, 2, 3, 4, 5]. Примени .map(x => x * 2), выведи результат через join(',') (ожидаемый вывод: 2,4,6,8,10)",
+      "starter": "const arr = [1, 2, 3, 4, 5];\n// const doubled = arr.map(x => x * 2);\n// console.log(doubled.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.map\\(",
+          "message": "Используй map()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2,4,6,8,10",
+          "message": "map(x => x * 2)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const arr = [1, 2, 3, 4, 5];\nconst doubled = arr.map(x => x * 2);\nconsole.log(doubled.join(\",\"));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Дан массив [1, 2, 3, 4, 5]. Примени .filter(x => x % 2 === 0), выведи результат через join(',') (ожидаемый вывод: 2,4)",
+      "starter": "const arr = [1, 2, 3, 4, 5];\n// const evens = arr.filter(x => x % 2 === 0);\n// console.log(evens.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.filter\\(",
+          "message": "Используй filter()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2,4",
+          "message": "filter(x => x % 2 === 0)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const arr = [1, 2, 3, 4, 5];\nconst evens = arr.filter(x => x % 2 === 0);\nconsole.log(evens.join(\",\"));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Напиши функцию applyToAll(arr, fn), которая применяет fn к каждому элементу arr через .map(). Вызови с [1, 2, 3] и x => x * 3 (ожидаемый вывод: 3,6,9)",
+      "starter": "// function applyToAll(arr, fn) {\n//   return arr.map(fn);\n// }\n// console.log(applyToAll([1, 2, 3], x => x * 3));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.forEach\\(",
+          "message": "Используй forEach()"
+        },
+        {
+          "kind": "stdout-lines",
+          "lines": [
+            "1",
+            "2",
+            "3"
+          ],
+          "message": "forEach выводит каждый элемент"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const arr = [1, 2, 3];\narr.forEach(x => console.log(x));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Дан массив слов ['hello', 'world', 'hi']. С помощью reduce() посчитай суммарную длину всех слов и выведи результат (ожидаемый вывод: 12)",
+      "starter": "// const words = [\"hello\", \"world\", \"hi\"];\n// const len = words.reduce((acc, w) => acc + w.length, 0);\n// console.log(len);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.reduce\\(",
+          "message": "Используй reduce()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "12",
+          "message": "reduce sum of lengths = 12"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const words = [\"hello\", \"world\", \"hi\"];\nconst len = words.reduce((acc, w) => acc + w.length, 0);\nconsole.log(len);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Дан массив nums = [5, 3, 8, 1, 2]. Создай копию через slice(), отсортируй по возрастанию через sort((a, b) => a - b) и выведи первый элемент (ожидаемый вывод: 1)",
+      "starter": "const nums = [5, 3, 8, 1, 2];\n// const sorted = nums.slice().sort((a, b) => a - b);\n// console.log(sorted[0]);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.slice\\(\\)",
+          "message": "Копируй массив через slice() перед сортировкой"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1",
+          "message": "sorted[0] = 1"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const nums = [5, 3, 8, 1, 2];\nconst sorted = nums.slice().sort((a, b) => a - b);\nconsole.log(sorted[0]);"
+    }
+  ],
+  "recap": [
+    "Функции — значения: их можно хранить, передавать, возвращать.",
+    "Колбэк — функция, переданная другой функции для вызова позже.",
+    ".forEach() — перебор без результата; .map() — преобразование в новый массив; .filter() — отбор.",
+    ".map() и .filter() не меняют исходный массив.",
+    "Методы можно цеплять: .filter().map() — стандартный паттерн.",
+    "Callback Hell — пирамида вложенных колбэков; async/await решает."
+  ],
+  "quiz": [
+    {
+      "q": "Что возвращает .map()?",
+      "options": [
+        "undefined",
+        "true/false",
+        "новый массив",
+        "исходный массив"
+      ],
+      "answer": 2,
+      "explain": ".map() возвращает новый массив с преобразованными элементами."
+    },
+    {
+      "q": "Что возвращает .forEach()?",
+      "options": [
+        "новый массив",
+        "undefined",
+        "true/false",
+        "тот же массив"
+      ],
+      "answer": 1,
+      "explain": ".forEach() возвращает undefined — это действие, а не трансформация."
+    },
+    {
+      "q": "Что такое колбэк?",
+      "options": [
+        "Тип данных",
+        "Функция, переданная другой функции для вызова позже",
+        "Ошибка",
+        "Цикл"
+      ],
+      "answer": 1,
+      "explain": "Колбэк — это функция, переданная как аргумент другой функции, которая вызывает её когда нужно."
+    }
+  ]
+}

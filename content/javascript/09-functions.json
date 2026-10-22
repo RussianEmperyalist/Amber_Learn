@@ -1,0 +1,314 @@
+{
+  "id": "javascript-09-functions",
+  "title": "Функции: мясорубка, которая экономит сотни строк",
+  "goal": "Создавать функции, понимать параметры и return, избегать ловушек",
+  "prereq": [
+    "javascript-08-objects"
+  ],
+  "duration": 25,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Представь, что тебе нужно вычислить площадь 1000 комнат. Каждая комната имеет свою длину и ширину. Без функции — 1000 строк: <code>let s1 = 5 * 3; let s2 = 10 * 7; ...</code>. С функцией — один раз написал, вызываешь сколько угодно раз: <code>area(5, 3)</code>, <code>area(10, 7)</code>. Функция — это <b>мясорубка</b>: кидаешь мясо (аргументы) внутрь, а снаружи получаешь фарш (результат). Один раз настроил мясорубку — использую на годы."
+    },
+    {
+      "type": "text",
+      "content": "<b>Функция</b> — это именованный блок кода, который можно вызвать многократно. Ты описываешь логику один раз, потом <code>myFunction(аргументы)</code> — и код выполняется. Функции — основа модульности: разбиваешь программу на маленькие задачи, каждая в своей функции. Без функций программа была бы одной длинной строкой — такой код невозможно читать и менять."
+    },
+    {
+      "type": "code",
+      "content": "// Объявление функции через keyword function\nfunction greet(name) {\n  // name — параметр: переменная внутри функции\n  console.log(\"Привет, \" + name + \"!\");\n}\n\n// Вызов функции с аргументом:\ngreet(\"Анна\");   // Привет, Анна!\ngreet(\"Борис\");  // Привет, Борис!\n\n// Параметры — это переменные, доступные только ВНУТРИ функции.\n// Аргументы — конкретные значения, которые ты передаёшь при вызове."
+    },
+    {
+      "type": "heading",
+      "content": "return: выход с результатом"
+    },
+    {
+      "type": "text",
+      "content": "<code>return</code> — это <b>выход из функции с результатом</b>. Функция возвращает значение, которое можно использовать: присвоить переменной, передать в другую функцию, вывести в консоль. Без return функция возвращает <b>undefined</b> — это автоматическое значение, если ты явно ничего не вернул. Это не баг — это правило: если функция должна 'дать результат', нужен return."
+    },
+    {
+      "type": "code",
+      "content": "// Функция с return возвращает значение\nfunction add(a, b) {\n  return a + b;  // возвращает сумму\n}\n\n// Результат можно присвоить переменной:\nconst result = add(5, 3);  // result = 8\nconsole.log(result);       // 8\n\n// Можно использовать в выражении:\nconsole.log(add(2, 3) + 10);  // 15\n\n// Функция БЕЗ return возвращает undefined:\nfunction sayHi(name) {\n  console.log(\"Привет, \" + name);\n  // нет return — результат undefined\n}\n\nconst value = sayHi(\"Ann\");\nconsole.log(value);  // undefined"
+    },
+    {
+      "type": "predict",
+      "code": "function calc(a, b) {\n  return a + b;\n  console.log(\"Эта строка никогда не выполнится\");\n}\nconsole.log(calc(2, 3));",
+      "question": "Что выведет код?",
+      "options": [
+        "5",
+        "Эта строка никогда не выполнится",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "return завершает функцию мгновенно — строка после return не выполняется. calc(2, 3) возвращает 5. console.log(\"Эта строка...\") — мёртвый код."
+    },
+    {
+      "type": "heading",
+      "content": "Стрелочные функции (arrow functions)"
+    },
+    {
+      "type": "text",
+      "content": "Стрелочная функция — <b>короткая запись</b> обычной функции: <code>(param) => expression</code>. Синтаксис короче, но есть два отличия: <b>нет своего this</b> (берёт this из окружающего контекста) и <b>не может быть вызвана до объявления</b> (не всплывает). Для простых операций — отличный выбор."
+    },
+    {
+      "type": "code",
+      "content": "// Обычная функция\nfunction double(x) {\n  return x * 2;\n}\n\n// То же через стрелочную функцию (короче):\nconst double = (x) => {\n  return x * 2;\n};\n\n// Ещё короче — если тело одно выражение, фигурные скобки и return не нужны:\nconst double = (x) => x * 2;\n\n// Если один параметр, круглые скобки тоже можно опустить:\nconst double = x => x * 2;\n\n// Оба варианта возвращают то же значение:\nconsole.log(double(5));  // 10"
+    },
+    {
+      "type": "heading",
+      "content": "Параметры по умолчанию"
+    },
+    {
+      "type": "text",
+      "content": "Если при вызове функции аргумент не передан, параметр получит значение <b>undefined</b>. Чтобы избежать этого, можно задать <b>значение по умолчанию</b>: <code>function greet(name = \"Гость\")</code>. Это полезно, когда аргумент опционален."
+    },
+    {
+      "type": "code",
+      "content": "function greet(name = \"Гость\") {\n  console.log(\"Привет, \" + name + \"!\");\n}\n\ngreet(\"Анна\");  // Привет, Анна!\ngreet();        // Привет, Гость! — использовано значение по умолчанию\n\n// Значения по умолчанию работают и для стрелочных:\nconst add = (a, b = 0) => a + b;\nconsole.log(add(5));   // 5\nconsole.log(add(5, 3)); // 8"
+    },
+    {
+      "type": "predict",
+      "code": "function sum(a, b) {\n  return a + b;\n}\nconsole.log(sum(5));",
+      "question": "Что выведет код?",
+      "options": [
+        "5",
+        "NaN",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Передан только один аргумент. b = undefined, а 5 + undefined = NaN. JavaScript не бросает ошибку при недостатке аргументов — параметры просто становятся undefined."
+    },
+    {
+      "type": "heading",
+      "content": "Hoisting: функция vs стрелочная функция"
+    },
+    {
+      "type": "text",
+      "content": "<b>Функции, объявленные через <code>function</code>, всплывают:</b> их можно вызывать ДО строки объявления. Это работает, потому что движок JavaScript перед выполнением 'поднимает' объявления функций наверх. <b>Стрелочные функции, присвоенные const — не всплывают</b>: вызов ДО объявления вызовет ReferenceError. Это фундаментальное отличие."
+    },
+    {
+      "type": "code",
+      "content": "// Объявление через function — всплывает:\nconsole.log(greet(\"Ann\"));  // Привет, Ann!\nfunction greet(name) {\n  return \"Привет, \" + name;\n}\n\n// Стрелочная функция — НЕ всплывает:\nconsole.log(sayHi(\"Ann\"));  // ReferenceError!\nconst sayHi = (name) => \"Привет, \" + name;\n\n// Всплывает только ОБЪЯВЛЕНИЕ переменной, а не ЗНАЧЕНИЕ:\n// sayHi = undefined, поэтому вызов = ошибка"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Стрелочная функция не имеет своего this.</b> Если ты используешь <code>this</code> внутри стрелочной функции, он берётся из окружающего контекста, а не из вызывающего объекта. Это часто ломает методы объектов. Если внутри объекта нужен self-referencing метод — используй обычную функцию: <code>method() { this.value }</code>, а не <code>method: () => { this.value }</code>."
+    },
+    {
+      "type": "code",
+      "content": "// this в обычной функции указывает на объект:\nconst user = {\n  name: \"Ann\",\n  greet() {\n    return \"Привет, \" + this.name;  // this.name = \"Ann\"\n  }\n};\nconsole.log(user.greet());  // Привет, Ann\n\n// this в стрелочной функции берёт извне (undefined в strict mode):\nconst user2 = {\n  name: \"Ann\",\n  greet: () => {\n    return \"Привет, \" + this.name;  // this.name = undefined!\n  }\n};\nconsole.log(user2.greet());  // Привет, undefined"
+    },
+    {
+      "type": "tip",
+      "content": "Правило выбора: <code>function</code> для методов объектов и конструкторов (нужен this), <code>const x = () => ...</code> для утилит и колбэков. Стрелочные функции короче и читаемее в 90% случаев."
+    },
+    {
+      "type": "heading",
+      "content": "Функция как значение"
+    },
+    {
+      "type": "text",
+      "content": "Функция — это <b>значение</b>. Её можно присвоить переменной, передать в другую функцию, вернуть из функции. Это основа <b>функций высшего порядка</b> и функционального программирования."
+    },
+    {
+      "type": "code",
+      "content": "// Функция в переменной:\nconst add = (a, b) => a + b;\nconst func = add;  // func — тоже функция\nconsole.log(func(2, 3));  // 5\n\n// Передача функции как аргумент (колбэк):\nfunction doTwice(fn) {\n  fn();\n  fn();\n}\n\ndoTwice(() => console.log(\"Hello\"));\n// Hello\n// Hello\n\n// Возврат функции из функции:\nfunction createMultiplier(mult) {\n  return (x) => x * mult;\n}\n\nconst double = createMultiplier(2);\nconst triple = createMultiplier(3);\nconsole.log(double(5));  // 10\nconsole.log(triple(5));  // 15"
+    },
+    {
+      "type": "note",
+      "content": "Функция без return возвращает undefined. Это не ошибка, но частая причина багов: вызывающий код ожидает значение, а получает undefined. Если функция 'что-то делает' (лог, запрос), а не 'что-то вычисляет' — return не нужен. Если функция 'вычисляет' — нужен return."
+    },
+    {
+      "type": "heading",
+      "content": "Сколько параметров — сколько аргументов"
+    },
+    {
+      "type": "text",
+      "content": "Если передано <b>меньше</b> аргументов, чем параметров — оставшиеся параметры будут undefined. Если <b>больше</b> — лишние аргументы просто игнорируются. Это поведение отличается от некоторых языков, где это ошибка. В JavaScript — просто работает, но может быть ловушкой."
+    },
+    {
+      "type": "code",
+      "content": "function sum(a, b) {\n  return a + b;\n}\n\nconsole.log(sum(5));      // NaN — b = undefined, 5 + undefined = NaN\nconsole.log(sum(5, 3, 1)); // 8 — третий аргумент игнорируется\n\n// Защита: проверка на undefined\nfunction safeSum(a, b) {\n  if (a === undefined || b === undefined) {\n    return 0;  // или throw new Error()\n  }\n  return a + b;\n}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай функцию greet(name), которая возвращает 'Привет, ' + name + '!'. Вызови greet(\"Amber\") и выведи результат (ожидаемый вывод: Привет, Amber!)",
+      "starter": "function greet(name) {\n  return \"Привет, \" + name + \"!\";\n}\n// console.log(greet(\"Amber\"));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "greet"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bfunction\\s+greet\\b",
+          "message": "Объяви функцию greet"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Привет, Amber!",
+          "message": "greet(\"Amber\") → \"Привет, Amber!\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function greet(name) {\n  return \"Привет, \" + name + \"!\";\n}\nconsole.log(greet(\"Amber\"));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай стрелочную функцию add(a, b) = a + b. Вызови add(3, 4) и выведи результат (ожидаемый вывод: 7)",
+      "starter": "const add = (a, b) => a + b;\n// console.log(add(3, 4));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "=>",
+          "message": "Используй стрелочную функцию"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "7",
+          "message": "add(3,4) = 7"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const add = (a, b) => a + b;\nconsole.log(add(3, 4));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай функцию square(n), которая возвращает n * n. Вызови square(5) и выведи результат (ожидаемый вывод: 25)",
+      "starter": "function square(n) {\n  return n * n;\n}\n// console.log(square(5));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "square"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "25",
+          "message": "square(5) = 25"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function square(n) {\n  return n * n;\n}\nconsole.log(square(5));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Функция не возвращает результат — console.log показывает undefined. Добавь return: функция должна возвращать сумму a + b.",
+      "starter": "function sum(a, b) {\n  a + b;\n}\nconsole.log(sum(3, 4));",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "=>",
+          "message": "Используй стрелочную функцию"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "isEven(4) = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const isEven = n => n % 2 === 0;\nconsole.log(isEven(4));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай функцию max(a, b), которая возвращает большее число через тернарный оператор. Вызови max(3, 7) и выведи результат (ожидаемый вывод: 7)",
+      "starter": "function max(a, b) {\n  return a > b ? a : b;\n}\n// console.log(max(3, 7));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "max"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "7",
+          "message": "max(3,7) = 7"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "function max(a, b) {\n  return a > b ? a : b;\n}\nconsole.log(max(3, 7));"
+    }
+  ],
+  "recap": [
+    "Функция — именованный блок кода, вызываемый многократно: one time define, many times call.",
+    "return — выход из функции с значением; без return функция возвращает undefined.",
+    "Стрелочные функции короче, но нет своего this и не всплывают.",
+    "function-функции всплывают (можно вызывать до объявления), const-функции — нет.",
+    "Параметры по умолчанию: function greet(name = \"Гость\").",
+    "this в стрелочной функции берёт из окружающего контекста, а не из объекта."
+  ],
+  "quiz": [
+    {
+      "q": "Что вернёт функция без return?",
+      "options": [
+        "null",
+        "0",
+        "undefined",
+        "false"
+      ],
+      "answer": 2,
+      "explain": "Функция без return автоматически возвращает undefined."
+    },
+    {
+      "q": "Можно ли вызвать function-функцию до её объявления?",
+      "options": [
+        "Нет, будет ошибка",
+        "Да, функция всплывает",
+        "Зависит от контекста",
+        "Только в strict mode"
+      ],
+      "answer": 1,
+      "explain": "Функции, объявленные через keyword function, всплывают наверх области видимости."
+    },
+    {
+      "q": "Что будет, если передать больше аргументов, чем параметров?",
+      "options": [
+        "Ошибка",
+        "Лишние аргументы игнорируются",
+        "undefined",
+        "TypeError"
+      ],
+      "answer": 1,
+      "explain": "JavaScript игнорирует лишние аргументы — это не ошибка."
+    }
+  ]
+}

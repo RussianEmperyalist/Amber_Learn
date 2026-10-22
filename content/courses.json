@@ -1,0 +1,12 @@
+{
+  "courses": [
+    {
+      "id": "javascript",
+      "title": "JavaScript",
+      "description": "От let/const до async/await. Без воды.",
+      "icon": "JS",
+      "level": "Начальный",
+      "lessons": 30
+    }
+  ]
+}

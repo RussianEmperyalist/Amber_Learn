@@ -1,0 +1,343 @@
+{
+  "id": "javascript-25-fetch",
+  "title": "Fetch API: почтовый голубь",
+  "goal": "Делать HTTP-запросы через fetch, обрабатывать JSON, проверять статусы, обрабатывать ошибки",
+  "prereq": [
+    "javascript-23-promises",
+    "javascript-24-async-await",
+    "javascript-15-json"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Раньше новости доставляли <b>почтовыми голубями</b>: ты привязываешь записку к лапе (запрос), отпускаешь птицу и ЖДЁШЬ. Не стоишь с вытянутой рукой — занимаешься делами. Когда голубь возвращается с ответом — читаешь. <b>fetch()</b> — это твой голубь: отправляешь запрос на сервер, получаешь обещание ответа (промис), а пока ждёшь — код работает. Вернулся ответ — обрабатываешь."
+    },
+    {
+      "type": "text",
+      "content": "<b>Fetch API</b> — встроенный в браузер способ делать HTTP-запросы. <code>fetch(url)</code> отправляет запрос и возвращает <b>Promise</b>, который разрешается объектом <code>Response</code>, когда сервер ответит. Это замена устаревшему XMLHttpRequest. Работает с промисами и async/await."
+    },
+    {
+      "type": "code",
+      "content": "// Базовый запрос через промисы\nfetch(\"https://api.example.com/users\")\n  .then(response => response.json())  // 1. получаем ответ\n  .then(data => console.log(data))     // 2. парсим JSON\n  .catch(error => console.error(\"Ошибка:\", error));\n\n// Тот же запрос через async/await\nasync function loadUsers() {\n  const response = await fetch(\"https://api.example.com/users\");\n  const data = await response.json();  // .json() тоже промис!\n  console.log(data);\n}"
+    },
+    {
+      "type": "heading",
+      "content": "fetch возвращает Promise<Response>"
+    },
+    {
+      "type": "text",
+      "content": "<code>fetch()</code> разрешается когда получены <b>заголовки ответа</b>. Тело ответа читается отдельно через <code>.json()</code> или <code>.text()</code> — они тоже возвращают промис. Поэтому await нужен ДВАЖДЫ: один для ответа, второй для данных."
+    },
+    {
+      "type": "code",
+      "content": "async function get() {\n  // Первый await — дождались ответа (заголовки)\n  const response = await fetch(url);\n\n  // response.body ещё не прочитан!\n  // Второй await — читаем и парсим JSON\n  const data = await response.json();\n\n  return data;\n}"
+    },
+    {
+      "type": "heading",
+      "content": "response.json() и response.text()"
+    },
+    {
+      "type": "text",
+      "content": "Ответ может быть в любом формате. <code>.json()</code> парсит JSON в объект, <code>.text()</code> возвращает текст, <code>.blob()</code> — бинарные данные (файлы). Выбор метода зависит от Content-Type ответа. json() вызывается только для JSON-ответов."
+    },
+    {
+      "type": "code",
+      "content": "const response = await fetch(url);\n\n// Если JSON — парсим в объект\nconst obj = await response.json();\n\n// Если текст — читаем как строку\nconst text = await response.text();\n\n// Если файл/картинка — бинарные данные\nconst blob = await response.blob();"
+    },
+    {
+      "type": "heading",
+      "content": "HTTP-статусы: ok, 404, 500"
+    },
+    {
+      "type": "text",
+      "content": "Каждый ответ имеет <code>response.status</code> — числовой код. <b>200-299</b> — успех, <b>404</b> — не найдено, <b>500</b> — ошибка сервера. <code>response.ok</code> — это true если статус 200-299, иначе false. ВАЖНО: fetch НЕ считает ошибку сервера (404/500) исключением!"
+    },
+    {
+      "type": "code",
+      "content": "const response = await fetch(url);\n\nconsole.log(response.status);  // 200, 404, 500...\nconsole.log(response.ok);      // true если 200-299\n\nif (response.status === 404) {\n  console.error(\"Страница не найдена\");\n}\nif (response.status >= 500) {\n  console.error(\"Ошибка сервера\");\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Методы запросов: GET, POST, PUT, DELETE"
+    },
+    {
+      "type": "text",
+      "content": "По умолчанию fetch делает GET. Чтобы изменить метод, передай объект настроек вторым аргументом: <code>method</code> (тип), <code>headers</code> (заголовки), <code>body</code> (данные). POST/PUT отправляют данные на сервер в <code>body</code>."
+    },
+    {
+      "type": "code",
+      "content": "// GET (по умолчанию) — получить данные\nfetch(\"/api/users\");\n\n// POST — создать данные\nfetch(\"/api/users\", {\n  method: \"POST\",\n  headers: { \"Content-Type\": \"application/json\" },  // говорим что шлём JSON\n  body: JSON.stringify({ name: \"Alice\" })  // данные в строке\n});\n\n// PUT — обновить\nfetch(\"/api/users/1\", { method: \"PUT\", body: ... });\n\n// DELETE — удалить\nfetch(\"/api/users/1\", { method: \"DELETE\" });"
+    },
+    {
+      "type": "predict",
+      "code": "const response = { status: 200, ok: true };\nconst data = await response.json();\nconsole.log(data);",
+      "question": "Что произойдёт если response.ok === true, но json() вернёт Promise.resolve({name:'Alice'})?",
+      "options": [
+        "{ name: 'Alice' }",
+        "Promise",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "await response.json() разворачивает Promise → { name: 'Alice' }. Если response.ok, значит данные корректны."
+    },
+    {
+      "type": "predict",
+      "code": "const res = { ok: false, status: 404 };\nif (res.ok) {\n  console.log(\"Успех\");\n} else {\n  console.log(\"Ошибка\", res.status);\n}",
+      "question": "Что выведется при ответе 404?",
+      "options": [
+        "\"Успех\"",
+        "\"Ошибка 404\"",
+        "undefined",
+        "Ничего"
+      ],
+      "answer": 1,
+      "explain": "res.ok === false при статусе 404. Значит идёт в else → 'Ошибка 404'. fetch сам НЕ проверяет ok — это твоя задача."
+    },
+    {
+      "type": "warning",
+      "content": "<b>fetch не выбрасывает ошибку на 404/500!</b> Это контринтуитивно. fetch отклоняет промис ТОЛЬКО если запрос вообще не прошёл (нет сети). Ответ 404 или 500 — это <b>успешно полученный ответ</b> с плохим статусом. Если забудешь проверить <code>res.ok</code> — ошибка 404 пролетит незамеченной, и ты будешь парсить страницу ошибки как данные. Всегда проверяй res.ok!"
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: не проверяем res.ok\nasync function bad() {\n  const res = await fetch(\"/not-found\");  // 404!\n  const data = await res.json();  // парсим страницу ошибки...\n  console.log(data.user.name);  // TypeError — undefined!\n}\n\n// ПРАВИЛЬНО: проверяем ok\nasync function good() {\n  const res = await fetch(\"/api/users\");\n  if (!res.ok) {\n    throw new Error(`HTTP error! status: ${res.status}`);\n  }\n  const data = await res.json();  // теперь точно данные\n  return data;\n}"
+    },
+    {
+      "type": "heading",
+      "content": "POST с телом запроса"
+    },
+    {
+      "type": "text",
+      "content": "Чтобы отправить данные на сервер, используешь POST с <code>body</code>. Данные сериализуются в JSON через <code>JSON.stringify</code>. Заголовок Content-Type сообщает серверу формат. Это стандартный способ создания ресурсов."
+    },
+    {
+      "type": "code",
+      "content": "async function createUser(name) {\n  const response = await fetch(\"/api/users\", {\n    method: \"POST\",\n    headers: { \"Content-Type\": \"application/json\" },\n    body: JSON.stringify({ name })  // объект → строка JSON\n  });\n  if (!response.ok) throw new Error(\"Failed\");\n  return response.json();  // сервер вернул созданного пользователя\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Симуляция fetch в песочнице"
+    },
+    {
+      "type": "text",
+      "content": "В песочнице реальные сетевые запросы заблокированы. Для обучения используем <b>мок-функцию</b>, которая имитирует fetch: возвращает Promise с объектом Response. У неё есть <code>ok</code>, <code>status</code> и метод <code>.json()</code>. Это позволяет тренировать тот же код, что и с настоящим fetch."
+    },
+    {
+      "type": "code",
+      "content": "// Мок-функция, имитирующая fetch\nfunction mockFetch(url) {\n  // Возвращаем Promise с объектом похожим на Response\n  return Promise.resolve({\n    ok: true,           // статус успешный\n    status: 200,        // код ответа\n    json: () => Promise.resolve({ id: 1, name: \"Alice\" })\n  });\n}\n\n// Работает точно как настоящий fetch!\nasync function load() {\n  const res = await mockFetch(\"/api/users\");\n  const data = await res.json();\n  console.log(data.name);  // Alice\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Обработка ошибок сети"
+    },
+    {
+      "type": "text",
+      "content": "Настоящий fetch отклоняет промис только при сетевой ошибке (нет интернета, DNS не найден). Это ловится через catch. Ошибки сервера (404/500) надо проверять вручную через res.ok. Полный набор обработки = catch + проверка ok."
+    },
+    {
+      "type": "code",
+      "content": "async function safeFetch(url) {\n  try {\n    const res = await fetch(url);\n    if (!res.ok) {\n      // Ошибка сервера — бросаем сами\n      throw new Error(`HTTP ${res.status}`);\n    }\n    return await res.json();\n  } catch (error) {\n    // Сетевая ошибка ИЛИ наш throw\n    console.error(\"Запрос не удался:\", error.message);\n    return null;\n  }\n}"
+    },
+    {
+      "type": "tip",
+      "content": "Создай свою утилиту <code>apiFetch(url)</code>, которая делает fetch, проверяет res.ok и парсит JSON. Тогда в остальном коде не придётся каждый раз писать if (!res.ok). Это DRY-подход к запросам."
+    },
+    {
+      "type": "heading",
+      "content": "Параллельные запросы"
+    },
+    {
+      "type": "text",
+      "content": "Несколько независимых запросов запускай параллельно через Promise.all. Не жди каждый по очереди. Это ускоряет загрузку страницы в разы."
+    },
+    {
+      "type": "code",
+      "content": "// Параллельно: загрузка пользователей И постов одновременно\nconst [users, posts] = await Promise.all([\n  fetch(\"/api/users\").then(r => r.json()),\n  fetch(\"/api/posts\").then(r => r.json())\n]);\n\nconsole.log(users);  // массив пользователей\nconsole.log(posts);  // массив постов"
+    },
+    {
+      "type": "note",
+      "content": "fetch — это низкоуровневый API. В реальных проектах часто используют библиотеки (axios) или свои обёртки, которые добавляют проверку статусов, повторные запросы и таймауты. Но понимать fetch обязательно."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Используй мокFetch (уже определён) который возвращает { ok:true, json:()=>Promise.resolve({msg:'hello'}) }. Await'ай json() и выведи msg (ожидаемый вывод: hello)",
+      "starter": "function mockFetch(url) {\n  return Promise.resolve({\n    ok: true,\n    json: () => Promise.resolve({ msg: 'hello' })\n  });\n}\nasync function main() {\n  const res = await mockFetch('/api');\n  const data = await res.json();\n  // console.log(data.msg);\n}\nmain();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\basync\\b",
+          "message": "Используй async"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\s+fetch",
+          "message": "Используй await fetch()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.json\\(\\)",
+          "message": "Используй .json()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "async function getData() {\n  const response = await fetch(\"/api/data\");\n  const data = await response.json();\n  console.log(data);\n}\ngetData();"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай мокFetch с json()=>Promise.resolve({status:'ok'}). Await'ай res.json() и выведи status (ожидаемый вывод: ok)",
+      "starter": "// async function main() {\n//   const res = { json: () => Promise.resolve({ status: 'ok' }) };\n//   const data = await res.json();\n//   console.log(data.status);\n// }\n// main();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.ok",
+          "message": "Используй response.ok"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "fetch",
+          "message": "Используй fetch()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "async function getData() {\n  const response = await fetch(\"/api/data\");\n  console.log(response.ok);\n}\ngetData();"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Дан res с ok:false, status:404. Проверь res.ok и выведи 'Error ' + status (ожидаемый вывод: Error 404)",
+      "starter": "const res = { ok: false, status: 404 };\nif (!res.ok) {\n  // console.log('Error ' + res.status);\n}\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.text\\(\\)",
+          "message": "Используй .text()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "fetch",
+          "message": "Используй fetch()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "async function getData() {\n  const response = await fetch(\"/api/data\");\n  const text = await response.text();\n  console.log(typeof text);\n}\ngetData();"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент не проверил res.ok и получил undefined (404 вернул страницу ошибки). Добавь проверку ok. Выведи 'Bad request' при ok:false (ожидаемый вывод: Bad request).",
+      "starter": "async function main() {\n  const res = { ok: false, status: 400, json: () => Promise.resolve({}) };\n  const data = await res.json();\n  console.log(data.error);\n}\nmain();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.status",
+          "message": "Используй response.status"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "fetch",
+          "message": "Используй fetch()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "async function getData() {\n  const response = await fetch(\"/api/data\");\n  console.log(response.status);\n}\ngetData();"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Через мокFetch с json()=>Promise.resolve([1,2,3]) получи массив и выведи сумму (ожидаемый вывод: 6)",
+      "starter": "// async function main() {\n//   const res = { json: () => Promise.resolve([1,2,3]) };\n//   const arr = await res.json();\n//   console.log(arr.reduce((a,b) => a+b, 0));\n// }\n// main();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\btry\\b",
+          "message": "Используй try/catch"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\s+fetch",
+          "message": "Используй await fetch()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "async function getData() {\n  try {\n    const response = await fetch(\"/api/data\");\n    console.log(\"ok\");\n  } catch (e) {\n    console.log(\"error\");\n  }\n}\ngetData();"
+    }
+  ],
+  "recap": [
+    "fetch(url) — HTTP-запрос, возвращает Promise<Response>.",
+    "await нужен дважды: для ответа и для .json().",
+    "response.ok — true при статусе 200-299.",
+    "fetch НЕ отклоняется на 404/500 — только на сетевой ошибке!",
+    "Всегда проверяй res.ok перед обработкой данных.",
+    "POST: method, headers (Content-Type), body (JSON.stringify)."
+  ],
+  "quiz": [
+    {
+      "q": "Выбросит ли fetch ошибку при ответе 404?",
+      "options": [
+        "Да",
+        "Нет — надо проверить res.ok",
+        "Только 500",
+        "Иногда"
+      ],
+      "answer": 1,
+      "explain": "fetch отклоняется только на сетевой ошибке. 404 — успешный ответ с плохим статусом."
+    },
+    {
+      "q": "Сколько await нужно для получения данных?",
+      "options": [
+        "Один",
+        "Два: ответ и .json()",
+        "Три",
+        "Ни одного"
+      ],
+      "answer": 1,
+      "explain": "await fetch() даёт Response, await response.json() даёт данные."
+    },
+    {
+      "q": "Что возвращает response.json()?",
+      "options": [
+        "Объект сразу",
+        "Promise",
+        "Строку",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": ".json() читает тело асинхронно и возвращает Promise."
+    }
+  ]
+}

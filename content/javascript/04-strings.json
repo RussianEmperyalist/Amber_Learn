@@ -1,0 +1,322 @@
+{
+  "id": "javascript-04-strings",
+  "title": "Строки: текст, который нельзя изменить",
+  "goal": "Научиться работать со строками: шаблонные литералы, методы и главное — понять, почему строки неизменяемы",
+  "prereq": [
+    "javascript-03-operators"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Попробуй изменить первую букву слова 'привет' на 'П'. В жизни это секундное дело. Но в JavaScript <b>строки нельзя изменять</b> — вообще никак. <code>str[0] = 'П'</code> молча ничего не сделает, а <code>str.toUpperCase()</code> вернёт <i>новую</i> строку, оставив старую нетронутой. Это не баг, а фундаментальное свойство. Понять его — значит перестать ломать голову над вопросом 'почему моя строка не изменилась'."
+    },
+    {
+      "type": "text",
+      "content": "<b>Строка (string)</b> — это последовательность символов в кавычках. JavaScript поддерживает три вида кавычек: двойные <code>\"текст\"</code>, одинарные <code>'текст'</code> и обратные <code>`текст`</code> (backticks). Первые две почти одинаковы, но обратные кавычки дают суперсилу: внутрь строки можно вставлять выражения через <code>${выражение}</code> и писать многострочный текст. Такие строки называют <b>шаблонными литералами</b>."
+    },
+    {
+      "type": "code",
+      "content": "// Двойные и одинарные кавычки — почти взаимозаменяемы:\nconst a = \"обычная строка\";\nconst b = 'тоже строка';\n\n// Обратные кавычки — шаблонный литерал:\nconst name = \"Amber\";\nconst age = 25;\nconst message = `Привет, ${name}! Тебе ${age} лет.`;\nconsole.log(message);  // Привет, Amber! Тебе 25 лет.\n\n// ${...} вычисляет ЛЮБОЕ выражение, не только переменную:\nconsole.log(`Сумма: ${2 + 2}`);  // Сумма: 4"
+    },
+    {
+      "type": "predict",
+      "code": "const x = 5;\nconsole.log(`Результат: ${x * 2}`);",
+      "question": "Что выведет этот код?",
+      "options": [
+        "Результат: ${x * 2}",
+        "Результат: 10",
+        "Ошибка",
+        "Результат: 5"
+      ],
+      "answer": 1,
+      "explain": "${x * 2} — это выражение внутри шаблонного литерала. JavaScript вычисляет 5 * 2 = 10 и подставляет результат в строку. Если бы кавычки были обычными, вывелось бы 'Результат: 10' только через конкатенацию."
+    },
+    {
+      "type": "heading",
+      "content": "Почему шаблонные литералы лучше конкатенации +"
+    },
+    {
+      "type": "text",
+      "content": "Старый способ строить строки — склеивать куски через <code>+</code>: <code>\"Привет, \" + name + \"! Тебе \" + age + \" лет.\"</code>. Это работает, но глазами читается плохо: легко потерять пробел или кавычку, а при десятке переменных строка превращается в кашу. Шаблонный литерал показывает <b>итоговый текст как есть</b>: видишь 'Привет, ${name}!' — и сразу понятно, что получится на выходе. Плюс в шаблонном литерале можно переносить строки на новую линию без спецсимволов."
+    },
+    {
+      "type": "code",
+      "content": "const name = \"Amber\";\nconst age = 25;\n\n// Старый способ — конкатенация (легко ошибиться с пробелами):\nconst old = \"Привет, \" + name + \"! Тебе \" + age + \" лет.\";\n\n// Новый способ — шаблонный литерал (читается как готовый текст):\nconst modern = `Привет, ${name}! Тебе ${age} лет.`;\n\n// Оба дадут одинаковый результат, но второй понятнее:\nconsole.log(modern);  // Привет, Amber! Тебе 25 лет."
+    },
+    {
+      "type": "tip",
+      "content": "Привычка: для строк с переменными всегда используй <code>`${}`</code>, а не <code>+</code>. Особенно когда переменных больше двух. Исключение — простые склейки из двух кусков, где конкатенация короче: <code>\"Hello, \" + name</code>."
+    },
+    {
+      "type": "heading",
+      "content": ".length — длина строки"
+    },
+    {
+      "type": "text",
+      "content": "<code>.length</code> возвращает количество символов в строке. Это <b>свойство</b>, а не метод: пишется без скобок (<code>str.length</code>, а не <code>str.length()</code>). Нумерация символов начинается с <b>0</b>: у строки 'Hello' длина 5, но последний символ — под индексом 4."
+    },
+    {
+      "type": "code",
+      "content": "const text = \"Hello\";\nconsole.log(text.length);    // 5 — пять символов\nconsole.log(text[0]);        // H — первый символ (индекс 0!)\nconsole.log(text[4]);        // o — последний символ\nconsole.log(text[5]);        // undefined — индекса 5 нет\n\n// Частый приём — последний символ через length - 1:\nconsole.log(text[text.length - 1]);  // o"
+    },
+    {
+      "type": "heading",
+      "content": ".toUpperCase() и .toLowerCase() — регистр"
+    },
+    {
+      "type": "text",
+      "content": "Эти методы возвращают новую строку в верхнем или нижнем регистре. Стандартное применение — нормализация пользовательского ввода: пользователь пишет 'AMBER', 'Amber', 'amber' — а проверка должна работать со всеми вариантами. Приводишь к нижнему регистру через <code>.toLowerCase()</code> и сравнишь спокойно."
+    },
+    {
+      "type": "code",
+      "content": "const name = \"amber\";\nconsole.log(name.toUpperCase());   // AMBER\nconsole.log(\"HELLO\".toLowerCase()); // hello\n\n// Нормализация ввода для проверки:\nconst input = \"AmBeR\";\nif (input.toLowerCase() === \"amber\") {\n  console.log(\"Имя совпало\");  // сработает для любого регистра\n}"
+    },
+    {
+      "type": "heading",
+      "content": ".slice(start, end) — вырезание подстроки"
+    },
+    {
+      "type": "text",
+      "content": "<code>.slice(start, end)</code> возвращает кусок строки от индекса <code>start</code> до <code>end</code>, <b>не включая</b> end. Если end не указан — до конца строки. Отрицательные индексы считаются с конца: <code>-1</code> — последний символ. Это самый частый метод для 'отрезать', 'взять начало', 'взять конец'."
+    },
+    {
+      "type": "code",
+      "content": "const word = \"JavaScript\";\nconsole.log(word.slice(0, 4));   // Java — символы 0,1,2,3 (4 не включается)\nconsole.log(word.slice(4));      // Script — с индекса 4 и до конца\nconsole.log(word.slice(-6));     // Script — последние 6 символов\nconsole.log(word.slice(0, -4));  // Java — от начала до -4 (без последних 4)\n\n// Важно: end НЕ включается. slice(0,4) берёт 4 символа, а не 5."
+    },
+    {
+      "type": "predict",
+      "code": "const s = \"Hello\";\nconsole.log(s.slice(1, 3));",
+      "question": "Что выведет код?",
+      "options": [
+        "Hel",
+        "el",
+        "ell",
+        "He"
+      ],
+      "answer": 1,
+      "explain": "slice(1, 3) берёт символы с индексом 1 и 2 (3 не включается): 'e' и 'l' = 'el'. Классическая ошибка — включить индекс 3 и получить 'ell'."
+    },
+    {
+      "type": "heading",
+      "content": ".split(separator) — строка → массив"
+    },
+    {
+      "type": "text",
+      "content": "<code>.split()</code> режет строку по разделителю и возвращает <b>массив</b> частей. Незаменим для разбора CSV, путей, списков тегов. Обратная операция — <code>.join()</code> у массива: массив → строка."
+    },
+    {
+      "type": "code",
+      "content": "const csv = \"apple,banana,cherry\";\nconst fruits = csv.split(\",\");\nconsole.log(fruits);         // [\"apple\", \"banana\", \"cherry\"]\nconsole.log(fruits.length);  // 3\nconsole.log(fruits[1]);      // banana — доступ к элементу массива\n\n// Разбиение по пробелу:\nconsole.log(\"раз два три\".split(\" \"));  // [\"раз\", \"два\", \"три\"]"
+    },
+    {
+      "type": "heading",
+      "content": ".replace(what, replacement) — замена"
+    },
+    {
+      "type": "text",
+      "content": "<code>.replace()</code> находит подстроку и заменяет её. <b>Внимание</b>: без регулярного выражения с флагом /g заменяется только <b>первое</b> вхождение. Это типичный баг: разработчик думает, что заменил все 'а' на 'z', а заменил только первый."
+    },
+    {
+      "type": "code",
+      "content": "const text = \"яблоко банан яблоко\";\nconsole.log(text.replace(\"яблоко\", \"апельсин\"));\n// \"апельсин банан яблоко\" — только ПЕРВОЕ вхождение!\n\n// Заменить ВСЕ — нужно регулярное выражение с флагом g:\nconsole.log(text.replace(/яблоко/g, \"апельсин\"));\n// \"апельсин банан апельсин\" — теперь все"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Строки неизменяемы (immutable).</b> Ни один метод не меняет исходную строку — <code>.toUpperCase()</code>, <code>.replace()</code>, <code>.slice()</code> всегда возвращают <b>новую</b> строку. Ошибка новичка: <code>str.toUpperCase(); console.log(str);</code> — вывелась старая строка, потому что результат не сохранили. Правильно: <code>str = str.toUpperCase()</code> или <code>const result = str.toUpperCase()</code>."
+    },
+    {
+      "type": "code",
+      "content": "const original = \"amber\";\nconst upper = original.toUpperCase();  // вернула НОВУЮ строку\nconsole.log(original);  // \"amber\" — оригинал не изменился!\nconsole.log(upper);     // \"AMBER\"\n\n// Если хочешь 'изменить' — перезапиши переменную (нужен let!):\nlet city = \"moscow\";\ncity = city.toUpperCase();  // теперь city === \"MOSCOW\""
+    },
+    {
+      "type": "heading",
+      "content": ".includes(substring) — проверка наличия"
+    },
+    {
+      "type": "text",
+      "content": "<code>.includes()</code> возвращает true, если подстрока найдена. Удобно для валидации: есть ли '@' в email, есть ли 'http' в ссылке. Метод <b>чувствителен к регистру</b>: 'World' и 'world' — разные подстроки."
+    },
+    {
+      "type": "code",
+      "content": "const email = \"user@example.com\";\nconsole.log(email.includes(\"@\"));     // true\n\nconst text = \"Hello, World\";\nconsole.log(text.includes(\"World\"));  // true\nconsole.log(text.includes(\"world\"));  // false — регистр важен!\n\n// Нормализация для регистронезависимой проверки:\nconsole.log(text.toLowerCase().includes(\"world\"));  // true"
+    },
+    {
+      "type": "note",
+      "content": "Ещё методы, которые пригодятся: <code>.trim()</code> — убирает пробелы по краям (обязателен при чтении из input), <code>.startsWith()</code> / <code>.endsWith()</code> — проверка начала/конца, <code>.repeat(n)</code> — повторение строки n раз, <code>.padStart()</code> — дополнение до длины (удобно для времени '09:05')."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай константу s = \"hello\". Выведи длину строки через .length (ожидаемый вывод: 5)",
+      "starter": "const s = \"hello\";\n// console.log(s.length);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.length",
+          "message": "Используй .length"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "5",
+          "message": "Длина \"Amber\" = 5"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const name = \"Amber\";\nconsole.log(name.length);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай константу s = \"hello world\". Выведи строку в верхнем регистре через .toUpperCase() (ожидаемый вывод: HELLO WORLD)",
+      "starter": "const s = \"hello world\";\n// console.log(s.toUpperCase());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.toUpperCase\\(\\)",
+          "message": "Используй toUpperCase()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "HELLO WORLD",
+          "message": "HELLO WORLD"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const s = \"hello world\";\nconsole.log(s.toUpperCase());"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай константу s = \"hello world\". Выведи первые 5 символов через .slice(0, 5) (ожидаемый вывод: hello)",
+      "starter": "const s = \"hello world\";\n// console.log(s.slice(0, 5));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.slice\\(",
+          "message": "Используй .slice()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "hello",
+          "message": "slice(0,5) = \"hello\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const s = \"hello world\";\nconsole.log(s.slice(0, 5));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай константы a = \"hello\" и b = \" world\". Склей их через + и выведи (ожидаемый вывод: hello world)",
+      "starter": "const a = \"hello\";\nconst b = \" world\";\n// console.log(a + b);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\+",
+          "message": "Используй + для склейки"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "hello world",
+          "message": "\"hello\" + \" world\" = \"hello world\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const a = \"hello\";\nconst b = \" world\";\nconsole.log(a + b);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай константу name = \"Amber\" и константу value = 42. Выведи через шаблонный литерал: 'Amber = 42' (ожидаемый вывод: Amber = 42)",
+      "starter": "const name = \"Amber\";\nconst value = 42;\n// console.log(`${name} = ${value}`);\n",
+      "checks": [
+        {
+          "kind": "has-template-literal"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber = 42",
+          "message": "Шаблонный литерал должен вывести \"Amber = 42\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const name = \"Amber\";\nconst value = 42;\nconsole.log(`${name} = ${value}`);"
+    }
+  ],
+  "recap": [
+    "Строки бывают в двойных, одинарных и обратных кавычках; обратные — шаблонные литералы.",
+    "Шаблонный литерал `текст ${выражение}` читается лучше конкатенации через +.",
+    ".length — свойство (без скобок), индексы начинаются с 0.",
+    ".slice(start, end) берёт символы от start до end, НЕ включая end.",
+    ".replace() без /g заменяет только первое вхождение.",
+    "Строки неизменяемы: все методы возвращают НОВУЮ строку, результат надо сохранять."
+  ],
+  "quiz": [
+    {
+      "q": "Что выведет: console.log(`2 + 2 = ${2 + 2}`)?",
+      "options": [
+        "2 + 2 = ${2 + 2}",
+        "2 + 2 = 4",
+        "Ошибка",
+        "2 + 2 = 22"
+      ],
+      "answer": 1,
+      "explain": "${2 + 2} — выражение внутри шаблонного литерала. Оно вычисляется, и в строку подставляется результат 4."
+    },
+    {
+      "q": "Что вернёт \"Hello\".slice(1, 3)?",
+      "options": [
+        "Hel",
+        "el",
+        "ell",
+        "He"
+      ],
+      "answer": 1,
+      "explain": ".slice(1, 3) берёт символы с индекса 1 по 2 (end не включается): 'e' и 'l' = 'el'."
+    },
+    {
+      "q": "Строки в JavaScript — это...",
+      "options": [
+        "изменяемые объекты",
+        "массивы символов",
+        "неизменяемые значения (immutable)",
+        "числа"
+      ],
+      "answer": 2,
+      "explain": "Строки immutable. Любой метод, который 'меняет' строку, возвращает новую, а оригинал остаётся прежним."
+    }
+  ]
+}

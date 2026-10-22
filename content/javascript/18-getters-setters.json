@@ -1,0 +1,324 @@
+{
+  "id": "javascript-18-getters-setters",
+  "title": "Геттеры и сеттеры: охранник на входе",
+  "goal": "Использовать get и set для вычисляемых свойств и валидации, избегать бесконечной рекурсии",
+  "prereq": [
+    "javascript-16-classes"
+  ],
+  "duration": 16,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Представь <b>охранника на входе в клуб</b>. Ты не можешь просто зайти — охранник проверяет: возраст, форма одежды, приглашение. <b>Сеттер</b> — это тот же охранник: он принимает значение и решает — пускать или нет. А <b>геттер</b> — это охранник на выходе: ты просишь что-то, а он выдаёт после проверки. Обычные свойства — это свободный вход без охраны. Геттеры/сеттеры — это контролируемый доступ к данным."
+    },
+    {
+      "type": "text",
+      "content": "<b>Геттеры (get) и сеттеры (set)</b> — это методы, которые вызываются автоматически при чтении или записи свойства. Снаружи это выглядит как доступ к обычному свойству: <code>obj.name</code>, а внутри выполняется код. Это даёт три преимущества: <b>валидация</b> при записи, <b>вычисление</b> при чтении, <b>инкапсуляция</b> — скрытие внутренней реализации."
+    },
+    {
+      "type": "code",
+      "content": "class User {\n  constructor(name) {\n    this.name = name;  // обычное свойство\n  }\n\n  // Геттер — вызывается при ЧТЕНИИ obj.fullName\n  get fullName() {\n    return this.name;  // при чтении возвращаем имя\n  }\n\n  // Сеттер — вызывается при ЗАПИСИ obj.fullName = \"...\"\n  set fullName(value) {\n    this.name = value;  // при записи записываем имя\n  }\n}\n\nconst u = new User(\"Alice\");\nconsole.log(u.fullName);  // Alice — вызывается get\nu.fullName = \"Bob\";      // Bob — вызывается set\nconsole.log(u.name);      // Bob"
+    },
+    {
+      "type": "heading",
+      "content": "get — вычисляемое свойство"
+    },
+    {
+      "type": "text",
+      "content": "<code>get</code> используется когда значение нужно <b>вычислять</b>, а не хранить. Это полезно для свойств, которые зависят от других данных: полная стоимость с налогом, длина массива, возраст из даты рождения. Геттер не хранит — он считает."
+    },
+    {
+      "type": "code",
+      "content": "class Rectangle {\n  constructor(width, height) {\n    this.width = width;\n    this.height = height;\n  }\n\n  get area() {\n    return this.width * this.height;  // вычисляем при чтении\n  }\n\n  get perimeter() {\n    return 2 * (this.width + this.height);  // периметр тоже вычисляем\n  }\n}\n\nconst r = new Rectangle(5, 3);\nconsole.log(r.area);      // 15 — геттер считает\nr.width = 10;             // меняем ширину\nconsole.log(r.area);      // 30 — геттер считает заново!"
+    },
+    {
+      "type": "predict",
+      "code": "class Box {\n  get size() {\n    return \"big\";\n  }\n}\nconst b = new Box();\nb.size = \"small\";\nconsole.log(b.size);",
+      "question": "Что выведется?",
+      "options": [
+        "\"big\"",
+        "\"small\"",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "У Box есть только геттер (get), но нет сеттера (set). Запись b.size = \"small\" не делает ничего — свойство size не создаётся, это просто игнорируется. При чтении геттер снова возвращает \"big\"."
+    },
+    {
+      "type": "heading",
+      "content": "set — валидация при записи"
+    },
+    {
+      "type": "text",
+      "content": "<code>set</code> позволяет <b>проверять данные</b> перед записью. Это защита от некорректных значений. Вместо того чтобы каждый раз проверять <code>if (age >= 0)</code> снаружи, ты прячешь проверку внутрь класса. Класс сам гарантирует валидность."
+    },
+    {
+      "type": "code",
+      "content": "class Temperature {\n  constructor(celsius) {\n    this.celsius = celsius;  // значение в Цельсиях\n  }\n\n  get fahrenheit() {\n    return this.celsius * 9/5 + 32;  // вычисляем Фаренгейт\n  }\n\n  set fahrenheit(value) {\n    this.celsius = (value - 32) * 5/9;  // конвертируем обратно в Цельсии\n  }\n}\n\nconst t = new Temperature(0);\nconsole.log(t.fahrenheit);  // 32 — геттер считает\n\nt.fahrenheit = 212;        // сеттер конвертирует\nconsole.log(t.celsius);     // 100 — температура в Цельсиях"
+    },
+    {
+      "type": "predict",
+      "code": "class Person {\n  constructor(age) {\n    this._age = age;\n  }\n  get age() {\n    return this._age;\n  }\n  set age(value) {\n    if (value < 0) {\n      console.log(\"Age must be >= 0\");\n      return;\n    }\n    this._age = value;\n  }\n}\nconst p = new Person(25);\np.age = -5;\nconsole.log(p.age);",
+      "question": "Что выведется?",
+      "options": [
+        "\"Age must be >= 0\" и -5",
+        "\"Age must be >= 0\" и 25",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Сеттер блокирует отрицательные значения: выводит сообщение и возвращается без изменения. _age остаётся 25. Это защита от некорректных данных."
+    },
+    {
+      "type": "heading",
+      "content": "get + set вместе"
+    },
+    {
+      "type": "text",
+      "content": "Когда нужны и чтение, и запись — объявляй и get, и set. Они работают независимо: при чтении вызывается get, при записи — set. Можно сделать и read-only (только get), и write-only (только set, но это редкость)."
+    },
+    {
+      "type": "code",
+      "content": "class Password {\n  #value;  // приватное поле для хранения\n\n  get hash() {\n    // Геттер возвращает ХЕШ, а не пароль\n    return this.#value ? this.#value.length + \" chars\" : \"empty\";\n  }\n\n  set password(value) {\n    // Сеттер принимает пароль, проверяет и хранит\n    if (value.length < 6) {\n      throw \"Password too short (min 6)\";\n    }\n    this.#value = value;\n  }\n}\n\nconst p = new Password();\np.password = \"secret123\";  // сеттер: проверка → сохранение\nconsole.log(p.hash);        // геттер: \"8 chars\""
+    },
+    {
+      "type": "warning",
+      "content": "<b>Бесконечная рекурсия в сеттере!</b> Если сеттер устанавливает СВОЙ ЖЕ name (не приватное поле), он снова вызывает сеттер, который снова вызывает сеттер — бесконечный стек переполняется. <code>set name(v) { this.name = v; }</code> — это <code>this.name = v</code> → сеттер → <code>this.name = v</code> → сеттер → ... — StackOverflow. Решение: используй приватное поле <code>#_name</code> или обычное <code>this._name</code> (если без строгой инкапсуляции)."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: бесконечная рекурсия\n// class Bad {\n//   get name() { return this.name; }  // геттер вызывает сам себя\n//   set name(v) { this.name = v; }    // сеттер вызывает сам себя\n// }\n// new Bad().name = \"test\";  // StackOverflow!\n\n// ПРАВИЛЬНО: приватное поле\nclass Good {\n  #_name;  // храним в приватном поле\n\n  get name() { return this.#_name; }   // читаем приватное\n  set name(v) { this.#_name = v; }     // записываем приватное\n}\n\nconst g = new Good();\ng.name = \"Alice\";  // работает!\nconsole.log(g.name);  // Alice"
+    },
+    {
+      "type": "heading",
+      "content": "Валидация в сеттере"
+    },
+    {
+      "type": "text",
+      "content": "Сеттер — идеальное место для валидации. Проверяй типы, диапазоны, форматы. Если значение некорректно — бросай ошибку. Это делает класс <b>надёжным</b>: невозможно создать объект с некорректными данными."
+    },
+    {
+      "type": "code",
+      "content": "class Account {\n  #balance;  // приватное хранилище\n\n  constructor(initial) {\n    this.#balance = initial;  // можно сразу\n  }\n\n  get balance() {\n    return this.#balance;  // геттер защищает от прямого доступа\n  }\n\n  set deposit(value) {\n    if (value <= 0) {\n      throw \"Deposit must be positive\";  // валидация\n    }\n    this.#balance += value;  // только после проверки\n  }\n\n  set withdraw(value) {\n    if (value > this.#balance) {\n      throw \"Insufficient funds\";  // проверка\n    }\n    this.#balance -= value;\n  }\n}\n\nconst acc = new Account(100);\nacc.deposit = 50;    // баланс 150\nacc.withdraw = 30;   // баланс 120\nconsole.log(acc.balance);  // 120"
+    },
+    {
+      "type": "heading",
+      "content": "static get — геттер на классе"
+    },
+    {
+      "type": "text",
+      "content": "Геттеры и сеттеры могут быть static. Вызываются как <code>Class.property</code>, а не <code>obj.property</code>. Полезно для вычисляемых значений, зависящих от класса, а не экземпляра: количество созданных объектов, версия API."
+    },
+    {
+      "type": "code",
+      "content": "class Counter {\n  static #count = 0;  // счётчик созданных экземпляров\n\n  constructor() {\n    Counter.#count++;  // инкрементируем при каждом new\n  }\n\n  static get instanceCount() {\n    return Counter.#count;  // читаем через static get\n  }\n}\n\nnew Counter();\nnew Counter();\nnew Counter();\nconsole.log(Counter.instanceCount);  // 3 — считаем экземпляры"
+    },
+    {
+      "type": "tip",
+      "content": "Приватные поля с # — это не просто защита, это способ избежать бесконечной рекурсии в геттерах/сеттерах. Используй <code>#_value</code> для хранения и <code>get value() { return this.#_value; }</code> для доступа. Никогда не используй <code>this.value</code> внутри сеттера/геттера — это вызовет сам себя."
+    },
+    {
+      "type": "heading",
+      "content": "get/set vs обычные свойства"
+    },
+    {
+      "type": "text",
+      "content": "Когда использовать обычные свойства — когда данные простые и не требуют проверки. Когда нужны get/set — когда данные зависят от других, требуют валидации или защиты. Геттеры/сеттеры не должны выполнять тяжёлых операций — они вызываются неявно."
+    },
+    {
+      "type": "code",
+      "content": "class Rectangle {\n  constructor(width, height) {\n    // Обычные свойства — простые данные\n    this._width = width;\n    this._height = height;\n  }\n\n  // Геттер — вычисляет на лету\n  get area() {\n    return this._width * this._height;\n  }\n\n  // Сеттер — валидирует\n  set width(v) {\n    if (v <= 0) throw \"Width must be > 0\";\n    this._width = v;\n  }\n}\n\nconst r = new Rectangle(5, 3);\nconsole.log(r.area);    // 15 — геттер\nr.width = 10;           // 10 — сеттер с валидацией\nconsole.log(r.area);    // 30 — геттер пересчитал"
+    },
+    {
+      "type": "heading",
+      "content": "get/set с вычисляемыми свойствами"
+    },
+    {
+      "type": "text",
+      "content": "Геттер может вычислять что угодно: комбинацию полей, данные из другого объекта, результат функции. Это делает геттеры гибким инструментом для представления данных."
+    },
+    {
+      "type": "code",
+      "content": "class DateRange {\n  constructor(start, end) {\n    this.start = start;  // Date\n    this.end = end;      // Date\n  }\n\n  get days() {\n    const diff = this.end - this.start;\n    return Math.ceil(diff / (1000 * 60 * 60 * 24));\n  }\n\n  get isLong() {\n    return this.days > 30;  // булево значение\n  }\n}\n\nconst trip = new DateRange(\n  new Date(\"2026-01-01\"),\n  new Date(\"2026-01-15\")\n);\nconsole.log(trip.days);    // 14\nconsole.log(trip.isLong);  // false"
+    },
+    {
+      "type": "note",
+      "content": "Геттеры/сеттеры — это не просто 'защита свойств'. Это способ сделать объект предсказуемым: данные, которые в него попали, всегда валидны, а свойства, которые из него выходят, всегда корректны."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай класс Person с constructor(name) и приватным полем _name. Добавь геттер name, возвращающий _name. Создай new Person(\"Amber\") и выведи p.name (ожидаемый вывод: Amber)",
+      "starter": "class Person {\n  constructor(name) { this._name = name; }\n  get name() { return this._name; }\n  set name(v) { this._name = v; }\n}\n// const p = new Person(\"Amber\");\n// console.log(p.name);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "get\\s+name",
+          "message": "Используй getter name"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Amber",
+          "message": "p.name getter возвращает _name"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Person {\n  constructor(name) {\n    this._name = name;\n  }\n  get name() { return this._name; }\n  set name(v) { this._name = v; }\n}\nconst p = new Person(\"Amber\");\nconsole.log(p.name);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай класс Circle с constructor(r) и геттером area = Math.PI * r * r. Создай new Circle(1) и выведи area.toFixed(0) (ожидаемый вывод: 3)",
+      "starter": "class Circle {\n  constructor(r) { this.r = r; }\n  get area() { return Math.PI * this.r * this.r; }\n}\n// console.log(new Circle(1).area.toFixed(0));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "get\\s+area",
+          "message": "Используй getter area"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "Circle(1).area.toFixed(0) = \"3\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Circle {\n  constructor(r) { this.r = r; }\n  get area() { return Math.PI * this.r * this.r; }\n}\nconsole.log(new Circle(1).area.toFixed(0));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай класс Account с constructor (this._balance = 0), геттером balance и методом deposit(n), который увеличивает _balance. Внеси 100 и выведи balance (ожидаемый вывод: 100)",
+      "starter": "class Account {\n  constructor() { this._balance = 0; }\n  get balance() { return this._balance; }\n  deposit(n) { this._balance += n; }\n}\n// const a = new Account();\n// a.deposit(100);\n// console.log(a.balance);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "get\\s+balance",
+          "message": "Используй getter balance"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "100",
+          "message": "Account.balance = 100"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Account {\n  constructor() { this._balance = 0; }\n  get balance() { return this._balance; }\n  deposit(n) { this._balance += n; }\n}\nconst a = new Account();\na.deposit(100);\nconsole.log(a.balance);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Сеттер set count(v) { this.count = v; } вызывает StackOverflow. Исправь: используй приватное поле this.#_count.",
+      "starter": "class Counter {\n  get count() { return this.count; }  // тоже рекурсия!\n  set count(v) { this.count = v; }\n}\nconst c = new Counter();\nc.count = 5;\nconsole.log(c.count);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "get\\s+f",
+          "message": "Используй getter f (Fahrenheit)"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "212",
+          "message": "Temp(100°C) → 212°F"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "class Temp {\n  get c() { return this._c || 0; }\n  set c(v) { this._c = v; }\n  get f() { return this.c * 9 / 5 + 32; }\n}\nconst t = new Temp();\nt.c = 100;\nconsole.log(t.f);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай класс Counter с геттером count, возвращающим 42. Создай new Counter() и выведи c.count (ожидаемый вывод: 42)",
+      "starter": "class Counter {\n  get count() { return 42; }\n}\n// console.log(new Counter().count);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "get\\s+count",
+          "message": "Используй getter count"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "42",
+          "message": "Counter.count getter"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Counter {\n  get count() { return 42; }\n}\nconsole.log(new Counter().count);"
+    }
+  ],
+  "recap": [
+    "get — вызывается при чтении свойства, позволяет вычислять значения.",
+    "set — вызывается при записи, позволяет валидировать данные.",
+    "Геттер без сеттера — read-only свойство.",
+    "Сеттер без геттера — write-only (редко).",
+    "Бесконечная рекурсия в сеттере: set name(v) { this.name = v; } — StackOverflow.",
+    "Решение рекурсии: используй приватное поле #_name."
+  ],
+  "quiz": [
+    {
+      "q": "Что выведет геттер, если нет сеттера?",
+      "options": [
+        "undefined",
+        "Вычисленное значение",
+        "Ошибка",
+        "null"
+      ],
+      "answer": 1,
+      "explain": "Геттер работает независимо — вызывается при чтении свойства."
+    },
+    {
+      "q": "Что будет при set count(v) { this.count = v; }?",
+      "options": [
+        "Нормально",
+        "Бесконечная рекурсия",
+        "undefined",
+        "0"
+      ],
+      "answer": 1,
+      "explain": "Сеттер вызывает сам себя: this.count = v → сеттер → this.count = v → ... — StackOverflow."
+    },
+    {
+      "q": "Где лучшее место для валидации?",
+      "options": [
+        "Геттер",
+        "Сеттер",
+        "Constructor",
+        "Метод"
+      ],
+      "answer": 1,
+      "explain": "Сеттер — идеальное место для валидации: данные проверяются при записи."
+    }
+  ]
+}

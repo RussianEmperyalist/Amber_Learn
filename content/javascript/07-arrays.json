@@ -1,0 +1,308 @@
+{
+  "id": "javascript-07-arrays",
+  "title": "Массивы: поезд, где у каждого вагона свой номер",
+  "goal": "Хранить списки данных в массиве, разбираться в индексах и не бояться мутации",
+  "prereq": [
+    "javascript-06-loops"
+  ],
+  "duration": 25,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Тебе нужно хранить список покупок из 10 продуктов. Без массивов ты напишешь: <code>let product1 = \"молоко\"; let product2 = \"хлеб\"; ...</code> — 10 переменных, а чтобы обработать их — цикл из 10 if. С массивом: <code>let products = [\"молоко\", \"хлеб\", \"сыр\"];</code> — одна переменная, а цикл переберёт её за тебя. <b>Массив</b> — это поезд: вагоны стоят в порядке, у каждого свой номер, и ты можешь обратиться к любому по номеру."
+    },
+    {
+      "type": "text",
+      "content": "<b>Массив</b> в JavaScript — это объект, который хранит упорядоченную коллекцию значений. Значения (элементы) могут быть любого типа и смешиваться: числа, строки, объекты, даже другие массивы. Главная сила массива — <b>индекс</b>: позиция элемента. Первая позиция — это <b>0</b>, а не 1. Это правило нужно принять как аксиому: в программировании счёт с нуля."
+    },
+    {
+      "type": "code",
+      "content": "// Объявление массива через квадратные скобки\nconst fruits = [\"яблоко\", \"банан\", \"вишня\"];\n\n// Индексация с НУЛЯ:\nconsole.log(fruits[0]);   // яблоко — первый элемент\nconsole.log(fruits[1]);   // банан — второй элемент\nconsole.log(fruits[2]);   // вишня — третий элемент\nconsole.log(fruits[3]);   // undefined — четвёртого элемента нет!\n\n// Длина массива — свойство length (без скобок!)\nconsole.log(fruits.length);  // 3\n// Последний индекс = length - 1 = 2"
+    },
+    {
+      "type": "predict",
+      "code": "const arr = [\"a\", \"b\", \"c\"];\nconsole.log(arr[1]);",
+      "question": "Что выведет код?",
+      "options": [
+        "a",
+        "b",
+        "c",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "Индексация с нуля: arr[0] = 'a', arr[1] = 'b', arr[2] = 'c'. Индекс 1 — это ВТОРОЙ элемент."
+    },
+    {
+      "type": "warning",
+      "content": "Выход за границы массива <b>не вызывает ошибку</b> — JavaScript возвращает <code>undefined</code>. Это тихая ловушка: <code>arr[100]</code> вернёт undefined, а не падение. Арифметика с undefined даёт NaN, обращение к свойству undefined — TypeError. Поэтому перед доступом по индексу проверяй: <code>if (i < arr.length)</code>."
+    },
+    {
+      "type": "heading",
+      "content": "Массив — это объект"
+    },
+    {
+      "type": "text",
+      "content": "Массив в JavaScript — технически <b>объект</b> с числовыми ключами. Поэтому у него есть свойства и методы: <code>.length</code>, <code>.push()</code>, <code>.indexOf()</code>. Можно добавить строковое свойство (<code>arr.custom = 42</code>) — это не сломает, но и в перебор попадёт странно. Проверка типа: <code>typeof arr</code> вернёт \"object\" (не \"array\"!), для настоящей проверки используй <code>Array.isArray(arr)</code>."
+    },
+    {
+      "type": "code",
+      "content": "const arr = [1, 2, 3];\n\n// Массив — это объект:\nconsole.log(typeof arr);        // \"object\" — не \"array\"!\nconsole.log(Array.isArray(arr)); // true — правильная проверка\n\n// У массива есть свойства и методы:\nconsole.log(arr.length);        // 3\nconsole.log(arr.push(4));       // 4 — добавили элемент\n\n// Можно даже добавить своё свойство (но не стоит):\narr.custom = \"hello\";\nconsole.log(arr.custom);        // hello\nconsole.log(arr.length);        // 4 — custom НЕ считается элементом"
+    },
+    {
+      "type": "heading",
+      "content": "push / pop — добавить/убрать с конца"
+    },
+    {
+      "type": "text",
+      "content": "<code>push()</code> добавляет элемент в <b>конец</b> массива и возвращает новую длину. <code>pop()</code> удаляет <b>последний</b> элемент и возвращает его. Оба метода <b>мутируют</b> исходный массив — меняют его содержимое на месте. Это важно помнить: если ты передал массив в функцию и там сделали push — оригинал изменился."
+    },
+    {
+      "type": "code",
+      "content": "const tasks = [\"задача1\", \"задача2\"];\n\n// push — добавить в конец:\ntasks.push(\"задача3\");\nconsole.log(tasks);   // [\"задача1\", \"задача2\", \"задача3\"]\n\n// pop — убрать с конца:\nconst last = tasks.pop();  // вернул \"задача3\"\nconsole.log(tasks);   // [\"задача1\", \"задача2\"] — изменился!\nconsole.log(last);    // задача3"
+    },
+    {
+      "type": "heading",
+      "content": "unshift / shift — добавить/убрать с начала"
+    },
+    {
+      "type": "text",
+      "content": "<code>unshift()</code> добавляет в <b>начало</b>, <code>shift()</code> убирает из начала. Работают как push/pop, но наоборот. Минус: при unshift/shift все остальные элементы сдвигаются — для больших массивов это медленно. push/pop быстрее, потому что конец не требует сдвига."
+    },
+    {
+      "type": "code",
+      "content": "const queue = [\"второй\", \"третий\"];\n\n// unshift — в начало:\nqueue.unshift(\"первый\");\nconsole.log(queue);   // [\"первый\", \"второй\", \"третий\"]\n\n// shift — из начала:\nconst first = queue.shift();  // вернул \"первый\"\nconsole.log(queue);   // [\"второй\", \"третий\"]\nconsole.log(first);   // первый"
+    },
+    {
+      "type": "heading",
+      "content": "slice vs splice — не путать!"
+    },
+    {
+      "type": "text",
+      "content": "Похожие имена — разное поведение. <code>slice(start, end)</code> возвращает <b>копию</b> части массива, <b>не меняя оригинал</b> (как у строк). <code>splice(start, count)</code> <b>удаляет/вставляет</b> элементы прямо в массив, <b>мутируя его</b>. Запомни: slice — безопасная копия, splice — хирургия на живом."
+    },
+    {
+      "type": "code",
+      "content": "const arr = [10, 20, 30, 40, 50];\n\n// slice — копия, оригинал НЕ меняется:\nconst part = arr.slice(1, 3);   // берём индексы 1 и 2\nconsole.log(part);              // [20, 30]\nconsole.log(arr);               // [10, 20, 30, 40, 50] — цел!\n\n// splice — МУТАЦИЯ: удаляет/вставляет на месте\nconst removed = arr.splice(1, 2);  // с индекса 1 удалить 2 элемента\nconsole.log(removed);           // [20, 30] — удалённые\nconsole.log(arr);               // [10, 40, 50] — оригинал ИЗМЕНЁН"
+    },
+    {
+      "type": "predict",
+      "code": "const nums = [1, 2, 3, 4, 5];\nconst sub = nums.slice(0, 2);\nconsole.log(sub);\nconsole.log(nums.length);",
+      "question": "Что выведет код?",
+      "options": [
+        "[1, 2], 5",
+        "[1, 2], 2",
+        "[1, 2, 3], 5",
+        "[0, 1], 5"
+      ],
+      "answer": 0,
+      "explain": "slice(0, 2) возвращает копию [1, 2] и НЕ меняет оригинал. nums.length остаётся 5. Если бы это был splice(0, 2), оригинал сократился бы до 3 элементов."
+    },
+    {
+      "type": "heading",
+      "content": "indexOf и includes — поиск"
+    },
+    {
+      "type": "text",
+      "content": "<code>indexOf(value)</code> возвращает <b>индекс</b> первого вхождения или -1, если не найдено. <code>includes(value)</code> возвращает <b>true/false</b> — просто есть ли элемент. Для проверки 'есть ли' — includes читаемее. Для получения позиции — indexOf. Оба чувствительны к типу: строка \"5\" не найдётся в массиве чисел [5]."
+    },
+    {
+      "type": "code",
+      "content": "const colors = [\"red\", \"green\", \"blue\"];\n\n// indexOf — позиция элемента:\nconsole.log(colors.indexOf(\"green\"));  // 1\nconsole.log(colors.indexOf(\"pink\"));   // -1 — не найдено\n\n// includes — есть ли элемент:\nconsole.log(colors.includes(\"red\"));   // true\nconsole.log(colors.includes(\"pink\"));  // false\n\n// Классический паттерн: проверить и получить индекс\nconst idx = colors.indexOf(\"blue\");\nif (idx !== -1) {\n  console.log(\"Найден на позиции:\", idx);  // 2\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Перебор массива циклом"
+    },
+    {
+      "type": "text",
+      "content": "Стандартный паттерн перебора — цикл от 0 до <code>arr.length - 1</code>. Это работает всегда и со всем. Альтернатива — <code>for...of</code>: сразу даёт значения без индексов. Не забывай: length может меняться при мутации — не кэшируй его в переменную перед циклом, если меняешь массив внутри."
+    },
+    {
+      "type": "code",
+      "content": "const scores = [10, 20, 30];\n\n// Классический for — с индексом:\nfor (let i = 0; i < scores.length; i++) {\n  console.log(scores[i]);  // 10, 20, 30\n}\n\n// for...of — только значения (без индексов):\nfor (const score of scores) {\n  console.log(score);  // 10, 20, 30\n}\n\n// Сумма элементов массива:\nlet sum = 0;\nfor (const score of scores) {\n  sum += score;\n}\nconsole.log(sum);  // 60"
+    },
+    {
+      "type": "tip",
+      "content": "Методы, которые <b>мутируют</b> массив: push, pop, shift, unshift, splice, sort, reverse. Методы, которые возвращают <b>новый</b> массив: slice, concat, map, filter. Если нужно сохранить оригинал — используй не-мутирующие методы или копию: <code>const copy = [...arr]</code>."
+    },
+    {
+      "type": "note",
+      "content": "Двумерные массивы — массивы внутри массивов (таблицы, матрицы). Доступ: <code>matrix[row][col]</code>. Перебор — вложенным циклом: внешний по строкам, внутренний по столбцам. Это способ хранить таблицы в памяти."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай массив arr = [1, 2, 3]. Добавь число 4 через push(). Выведи длину массива и последний элемент (ожидаемый вывод: 4 4)",
+      "starter": "const arr = [1, 2, 3];\n// arr.push(4);\n// console.log(arr.length, arr[arr.length - 1]);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.push\\(",
+          "message": "Используй push()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "4 4",
+          "message": "length=4, последний=4"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const arr = [1, 2, 3];\narr.push(4);\nconsole.log(arr.length, arr[arr.length - 1]);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай массив arr = [5, 2, 8, 1, 9]. Отсортируй по возрастанию с помощью sort((a, b) => a - b). Выведи первый элемент (ожидаемый вывод: 1)",
+      "starter": "const arr = [5, 2, 8, 1, 9];\n// arr.sort((a, b) => a - b);\n// console.log(arr[0]);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.sort\\(",
+          "message": "Используй sort()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1",
+          "message": "Минимум после сортировки = 1"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const arr = [5, 2, 8, 1, 9];\narr.sort((a, b) => a - b);\nconsole.log(arr[0]);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай массив arr = [10, 20, 30, 40]. Удали последний элемент через pop() и выведи его и новую длину (ожидаемый вывод: 40 3)",
+      "starter": "const arr = [10, 20, 30, 40];\n// const item = arr.pop();\n// console.log(item, arr.length);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.pop\\(\\)",
+          "message": "Используй pop()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "40 3",
+          "message": "pop() вернул 40, length=3"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const arr = [10, 20, 30, 40];\nconst item = arr.pop();\nconsole.log(item, arr.length);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай массив arr = [1, 2, 3, 4, 5]. Получи часть массива slice(1, 4) и выведи элементы через join(',') (ожидаемый вывод: 2,3,4)",
+      "starter": "const arr = [1, 2, 3, 4, 5];\n// const sliced = arr.slice(1, 4);\n// console.log(sliced.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.slice\\(",
+          "message": "Используй slice()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2,3,4",
+          "message": "slice(1,4) = [2,3,4]"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const arr = [1, 2, 3, 4, 5];\nconst slice = arr.slice(1, 4);\nconsole.log(slice.join(\",\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай массив words = [\"hello\", \"world\", \"js\"]. Выведи все элементы через цикл for в верхнем регистре: HELLO, WORLD, JS (каждое на отдельной строке)",
+      "starter": "const words = [\"hello\", \"world\", \"js\"];\n// for + toUpperCase() — выведи каждый элемент в верхнем регистре\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.indexOf\\(",
+          "message": "Используй indexOf()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2",
+          "message": "indexOf(3) = 2"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const arr = [1, 2, 3, 4, 5];\nconst idx = arr.indexOf(3);\nconsole.log(idx);"
+    }
+  ],
+  "recap": [
+    "Массив — объект с числовыми ключами (индексами); индексация начинается с 0.",
+    "arr[0] — первый элемент, arr[arr.length - 1] — последний.",
+    "Выход за границы возвращает undefined, а не ошибку.",
+    "push/pop работают с концом, unshift/shift — с началом; все мутируют массив.",
+    "slice — копия (не трогает оригинал), splice — мутирует оригинал.",
+    "indexOf даёт позицию (-1 если нет), includes даёт true/false."
+  ],
+  "quiz": [
+    {
+      "q": "Что вернёт [10, 20, 30][1]?",
+      "options": [
+        "10",
+        "20",
+        "30",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "Индексация с нуля: [10, 20, 30][1] — это второй элемент, 20."
+    },
+    {
+      "q": "Какой метод НЕ меняет исходный массив?",
+      "options": [
+        "push",
+        "splice",
+        "slice",
+        "pop"
+      ],
+      "answer": 2,
+      "explain": "slice возвращает копию части массива, оригинал остаётся неизменным."
+    },
+    {
+      "q": "Что вернёт arr[100] для массива из 3 элементов?",
+      "options": [
+        "Ошибка",
+        "null",
+        "undefined",
+        "0"
+      ],
+      "answer": 2,
+      "explain": "Выход за границы не вызывает ошибку — возвращается undefined."
+    }
+  ]
+}

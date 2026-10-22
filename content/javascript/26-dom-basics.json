@@ -1,0 +1,367 @@
+{
+  "id": "javascript-26-dom-basics",
+  "title": "Основы DOM: HTML превращается в дерево объектов",
+  "goal": "Находить элементы через querySelector, читать и менять текст, стили и атрибуты",
+  "prereq": [
+    "javascript-08-objects"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "HTML — это просто <b>текстовый файл</b>. Но когда браузер его открывает, он делает магию: превращает текст в <b>дерево объектов JavaScript</b>. Каждый тег <code>&lt;div&gt;</code> становится объектом с полями и методами. Это дерево называется <b>DOM</b> (Document Object Model). Теперь ты можешь писать <code>document.querySelector('h1')</code> — и получишь живой объект, который можно читать и менять. Страница перестаёт быть картинкой и становится данными."
+    },
+    {
+      "type": "text",
+      "content": "<b>document</b> — главный объект, корень всего дерева. Через него ищут элементы и создают новые. Каждый узел документа (элемент, текст, комментарий) представлен объектом. DOM — это мост между статическим HTML и динамическим JavaScript: меняя объекты DOM, ты меняешь то, что видит пользователь."
+    },
+    {
+      "type": "code",
+      "content": "// В HTML есть: <h1 id=\"title\">Привет</h1>\n\n// Находим элемент по CSS-селектору:\nconst h1 = document.querySelector(\"#title\");\nconsole.log(h1.textContent);   // \"Привет\" — читаем текст\n\n// Меняем текст — страница обновится мгновенно:\nh1.textContent = \"Пока!\";     // теперь на экране \"Пока!\""
+    },
+    {
+      "type": "heading",
+      "content": "querySelector — поиск по CSS-селектору"
+    },
+    {
+      "type": "text",
+      "content": "<code>document.querySelector('css')</code> возвращает <b>ПЕРВЫЙ</b> подходящий элемент или null. Знаешь CSS — знаешь поиск: <code>'.btn'</code>, <code>'#main'</code>, <code>'ul li'</code>, <code>'input[name=\"email\"]'</code>. Это самый универсальный способ найти элемент на странице."
+    },
+    {
+      "type": "code",
+      "content": "// Ищем по тегу\nconst firstP = document.querySelector(\"p\");\n\n// Ищем по классу (точка = класс)\nconst btn = document.querySelector(\".btn-primary\");\n\n// Ищем по id (решётка = id)\nconst header = document.querySelector(\"#header\");\n\n// Вложенный селектор: li внутри ul\nconst item = document.querySelector(\"ul li\");\n\n// querySelectorAll — ВСЕ подходящие элементы\nconst allBtns = document.querySelectorAll(\"button\");\nconsole.log(allBtns.length);  // сколько кнопок на странице"
+    },
+    {
+      "type": "predict",
+      "code": "// На странице НЕТ элемента с классом .missing\nconst el = document.querySelector('.missing');\nconsole.log(el);",
+      "question": "Что выведется, если элемент не найден?",
+      "options": [
+        "Ошибка TypeError",
+        "null",
+        "undefined",
+        "Пустой объект {}"
+      ],
+      "answer": 1,
+      "explain": "querySelector возвращает null, если ничего не нашёл — НЕ ошибку. Но попытка el.textContent упадёт с TypeError: Cannot read properties of null. Поэтому всегда проверяй результат!"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Безопасность: XSS через innerHTML.</b> Если вставить пользовательский ввод через <code>innerHTML</code>, злоумышленник может передать <code>&lt;script&gt;alert('hack')&lt;/script&gt;</code> — и код выполнится на странице! Никогда не подставляй данные пользователя в innerHTML. Для текста используй <code>textContent</code> — он экранирует HTML автоматически. Это дыра №1 в веб-безопасности."
+    },
+    {
+      "type": "code",
+      "content": "const userInput = \"<img src=x onerror=alert('XSS')>\";\n\n// ОПАСНО: innerHTML интерпретирует HTML!\n// div.innerHTML = userInput;  // картинка-ловушка сработает!\n\n// БЕЗОПАСНО: text.textContent покажет текст как есть\ndiv.textContent = userInput;\n// На экране: &lt;img src=x onerror=alert('XSS')&gt; — просто текст"
+    },
+    {
+      "type": "heading",
+      "content": "textContent vs innerHTML"
+    },
+    {
+      "type": "text",
+      "content": "<code>textContent</code> — это чистый текст элемента, без разметки. Безопасен для чтения и записи. <code>innerHTML</code> — HTML-разметка внутри элемента: при записи теги разбираются и становятся настоящими узлами. innerHTML мощнее, но опаснее. Правило: текст → textContent, разметка из доверенного кода → innerHTML."
+    },
+    {
+      "type": "code",
+      "content": "// В HTML: <div id=\"box\"><b>Жирный</b> текст</div>\nconst box = document.querySelector(\"#box\");\n\nconsole.log(box.textContent);  // \"Жирный текст\" — только буквы\nconsole.log(box.innerHTML);    // \"<b>Жирный&lt;/b&gt; текст\" — с тегами\n\n// Запись:\nbox.textContent = \"&lt;i&gt;Курсив&lt;/i&gt;\";  // покажет теги как ТЕКСТ\nbox.innerHTML = \"<i>Курсив&lt;/i&gt;\";    // создаст настоящий <i>"
+    },
+    {
+      "type": "predict",
+      "code": "const box = document.querySelector(\"#box\");\nbox.style.backgroundColor = \"#000\";\nconsole.log(box.style.backgroundColor);",
+      "question": "Что выведется при чтении style.backgroundColor?",
+      "options": [
+        "\"#000\"",
+        "\"black\"",
+        "\"#000000\"",
+        "undefined"
+      ],
+      "answer": 0,
+      "explain": "style.backgroundColor возвращает то, что было установлено — '#000'. Браузер не конвертирует в имя цвета.",
+      "fixture": "<div id=\"box\"></div>"
+    },
+    {
+      "type": "heading",
+      "content": "Стили: element.style"
+    },
+    {
+      "type": "text",
+      "content": "Свойство <code>element.style</code> даёт доступ к inline-стилям элемента. Пишем CSS-свойства в camelCase: <code>backgroundColor</code>, а не background-color. Изменения применяются сразу — пользователь видит эффект без перезагрузки."
+    },
+    {
+      "type": "code",
+      "content": "const box = document.querySelector(\".card\");\n\n// Меняем стили (camelCase!)\nbox.style.color = \"yellow\";        // цвет текста\nbox.style.backgroundColor = \"#000\"; // фон (не background-color!)\nbox.style.fontSize = \"24px\";       // размер шрифта\n\n// Читаем применённый inline-стиль:\nconsole.log(box.style.color);  // \"yellow\""
+    },
+    {
+      "type": "heading",
+      "content": "Классы: classList"
+    },
+    {
+      "type": "text",
+      "content": "Менять style напрямую — плохая практика (логика стилей разъезжается по JS). Лучше управлять <b>классами</b> через <code>classList</code>: add, remove, toggle, contains. Стили живут в CSS, а JS лишь переключает состояния."
+    },
+    {
+      "type": "code",
+      "content": "const btn = document.querySelector(\"button\");\n\nbtn.classList.add(\"active\");      // добавить класс\nbtn.classList.remove(\"hidden\");   // убрать класс\nbtn.classList.toggle(\"dark\");     // переключить (есть→нет, нет→есть)\nbtn.classList.contains(\"active\"); // true — проверка наличия\n\nconsole.log(btn.className);  // строка со всеми классами"
+    },
+    {
+      "type": "heading",
+      "content": "Атрибуты: getAttribute / setAttribute"
+    },
+    {
+      "type": "text",
+      "content": "Атрибуты тега (href, src, data-*) читаются и пишутся через <code>getAttribute</code>/<code>setAttribute</code>. Некоторые частые атрибуты доступны как свойства напрямую: <code>a.href</code>, <code>img.src</code>, <code>input.value</code>."
+    },
+    {
+      "type": "code",
+      "content": "const link = document.querySelector(\"a\");\n\nconsole.log(link.getAttribute(\"href\"));  // читаем атрибут\nlink.setAttribute(\"target\", \"_blank\");   // пишем атрибут\n\n// Часто используемые — как свойства:\nconsole.log(link.href);   // полный URL\nlink.textContent = \"Новая ссылка\";"
+    },
+    {
+      "type": "heading",
+      "content": "Создание элементов"
+    },
+    {
+      "type": "text",
+      "content": "<code>document.createElement('tag')</code> создаёт элемент, но он ещё НЕ на странице — висячий объект. Нужно вставить его родителю через <code>appendChild</code> (в конец) или <code>prepend</code> (в начало). Двухшаговая запись защищает от лишних перерисовок."
+    },
+    {
+      "type": "code",
+      "content": "// Создаём новый элемент\nconst li = document.createElement(\"li\");\nli.textContent = \"Новая задача\";   // заполняем содержимое\nli.style.color = \"yellow\";         // настраиваем\n\n// Вставляем в существующий список\ndocument.querySelector(\"ul\").appendChild(li);\n\n// Альтернативы:\nul.prepend(li);          // в начало\nsomeEl.before(li);       // перед элементом\nsomeEl.after(li);        // после элемента"
+    },
+    {
+      "type": "heading",
+      "content": "Удаление элементов"
+    },
+    {
+      "type": "text",
+      "content": "<code>el.remove()</code> удаляет элемент из DOM навсегда. После удаления переменная всё ещё хранит объект — его можно вставить обратно в другое место. Удаление родителя выбрасывает все дочерние узлы вместе с ним."
+    },
+    {
+      "type": "code",
+      "content": "const item = document.querySelector(\".old\");\n\nitem.remove();  // удалили из страницы\n\n// Объект живёт в памяти — можно вернуть:\ndocument.querySelector(\"ul\").appendChild(item);"
+    },
+    {
+      "type": "heading",
+      "content": "Поиск внутри элемента"
+    },
+    {
+      "type": "text",
+      "content": "querySelector работает не только от document, но и от любого элемента: <code>card.querySelector('.title')</code> ищет только ВНУТРИ card. Это полезно в списках: найдя карточку, ищешь детали в ней, не заботясь о всей странице."
+    },
+    {
+      "type": "code",
+      "content": "const cards = document.querySelectorAll(\".card\");\n\nfor (const card of cards) {\n  // Ищем ВНУТРИ каждой карточки:\n  const title = card.querySelector(\"h3\");\n  console.log(title.textContent);\n}\n\n// parentElement — родитель, children — дети\nconsole.log(title.parentElement);  // .card"
+    },
+    {
+      "type": "tip",
+      "content": "Совет производительности: если используешь один элемент несколько раз, найди его ОДИН раз и сохрани в переменную. Каждый querySelector — это поиск по дереву. Кэшированные ссылки ускоряют код и читаются чище."
+    },
+    {
+      "type": "note",
+      "content": "Script должен выполняться ПОСЛЕ того, как HTML загружен. Если скрипт в &lt;head&gt; ищет элемент ниже по документу — найдёт null. Решения: ставить &lt;script&gt; перед &lt;/body&gt; или использовать атрибут defer у модульного скрипта."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай элемент div с textContent='Привет' и выведи document.querySelector('#hello').textContent (элемент уже добавлен на страницу)",
+      "starter": "const el = document.createElement(\"div\");\nel.id = \"hello\";\nel.textContent = \"Привет\";   // создаём и заполняем\ndocument.body.appendChild(el); // вставляем в страницу\n// console.log(document.querySelector(\"#hello\").textContent);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.appendChild",
+          "message": "Используй appendChild()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.textContent",
+          "message": "Используй textContent"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Привет",
+          "message": "textContent #hello = \"Привет\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const el = document.createElement(\"div\");\nel.id = \"hello\";\nel.textContent = \"Привет\";\ndocument.body.appendChild(el);\nconsole.log(document.querySelector(\"#hello\").textContent);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай элемент p с id='task2', textContent='Задача'. Найди его через getElementById и выведи textContent (ожидаемый вывод: Задача)",
+      "starter": "// const el = document.createElement(\"p\");\n// el.id = \"task2\";\n// el.textContent = \"Задача\";\n// document.body.appendChild(el);\n// console.log(document.getElementById(\"task2\").textContent);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "document\\.getElementById",
+          "message": "Используй getElementById()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Задача",
+          "message": "textContent #task2 = \"Задача\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const el = document.createElement(\"p\");\nel.id = \"task2\";\nel.textContent = \"Задача\";\ndocument.body.appendChild(el);\nconsole.log(document.getElementById(\"task2\").textContent);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай div, установи style.color='red' и выведи document.querySelector('#t3').style.color (ожидаемый вывод: red)",
+      "starter": "const el = document.createElement(\"div\");\nel.id = \"t3\";\ndocument.body.appendChild(el);\n// el.style.color = \"red\";\nconsole.log(document.querySelector(\"#t3\").style.color);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.style\\.",
+          "message": "Используй .style."
+        },
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "red",
+          "message": "style.color = \"red\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const el = document.createElement(\"div\");\nel.id = \"t3\";\ndocument.body.appendChild(el);\nel.style.color = \"red\";\nconsole.log(document.querySelector(\"#t3\").style.color);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент обращается к .textContent элемента, которого нет (querySelector вернул null) — TypeError. Исправь: сначала создай элемент с id='t4' и текстом 'ok'.",
+      "starter": "const el = document.querySelector(\"#t4\");\nconsole.log(el.textContent);",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "document\\.querySelector",
+          "message": "Используй querySelector()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "ok",
+          "message": "textContent #t4 = \"ok\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const el = document.createElement(\"div\");\nel.id = \"t4\";\nel.textContent = \"ok\";\ndocument.body.appendChild(el);\nconsole.log(document.querySelector(\"#t4\").textContent);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай ul с id='t5', добавь в него два li ('Раз', 'Два'). Выведи количество li через document.querySelectorAll('#t5 li').length (ожидаемый вывод: 2)",
+      "starter": "const list = document.createElement(\"ul\");\nlist.id = \"t5\";\nfor (const text of [\"Раз\", \"Два\"]) {\n  const li = document.createElement(\"li\");\n  li.textContent = text;\n  list.appendChild(li);\n}\ndocument.body.appendChild(list);\n// console.log(document.querySelectorAll(\"#t5 li\").length);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.appendChild",
+          "message": "Используй appendChild()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "2",
+          "message": "list.children.length = 2"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const list = document.createElement(\"ul\");\nlist.id = \"t5\";\nfor (const text of [\"Раз\", \"Два\"]) {\n  const li = document.createElement(\"li\");\n  li.textContent = text;\n  list.appendChild(li);\n}\ndocument.body.appendChild(list);\nconsole.log(document.querySelectorAll(\"#t5 li\").length);"
+    }
+  ],
+  "recap": [
+    "DOM — дерево объектов из HTML-текста.",
+    "document.querySelector('css') — первый элемент или null.",
+    "querySelectorAll — все совпадения (NodeList).",
+    "textContent — безопасный текст, innerHTML — разметка (XSS-опасно!).",
+    "element.style.prop — inline-стили в camelCase.",
+    "classList.add/remove/toggle — управление классами."
+  ],
+  "quiz": [
+    {
+      "q": "Что вернёт querySelector несуществующего элемента?",
+      "options": [
+        "Ошибку",
+        "null",
+        "undefined",
+        "{}"
+      ],
+      "answer": 1,
+      "explain": "querySelector возвращает null. Ошибка будет позже, если обратиться к свойству null."
+    },
+    {
+      "q": "Чем безопасно вставить текст пользователя?",
+      "options": [
+        "innerHTML",
+        "textContent",
+        "document.write",
+        "outerHTML"
+      ],
+      "answer": 1,
+      "explain": "textContent вставляет текст как есть, без разбора HTML — защита от XSS."
+    },
+    {
+      "q": "Как задать фоновый цвет через style?",
+      "options": [
+        "style.background-color",
+        "style.backgroundColor",
+        "style.bgColor()",
+        "style['background-color']"
+      ],
+      "answer": 1,
+      "explain": "CSS-дефисы превращаются в camelCase: background-color → backgroundColor."
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Курс · Amber Learn</title>
+  <style>
+    html { visibility: hidden; }
+    html.ready { visibility: visible; }
+  </style>
+  <script>
+    window.addEventListener('load', function() {
+      document.documentElement.classList.add('ready');
+    });
+  </script>
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="./styles/cyberpunk.css?v=5">
+  <link rel="stylesheet" href="./styles/layout.css?v=5">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header class="app-header"></header>
+
+  <div class="layout no-sidebar">
+    <main class="content wide">
+      <div id="courseHeader">
+        <div class="card"><span class="spinner"></span> Загрузка...</div>
+      </div>
+      <h2 class="section-title">// Программа курса</h2>
+      <div id="lessonList"></div>
+    </main>
+  </div>
+
+  <div id="toasts"></div>
+
+  <script type="module">
+    import { renderHeader, getQuery, toast } from './scripts/app.js?v=5';
+    import { content } from './scripts/content.js?v=5';
+    import { auth } from './scripts/auth.js?v=5';
+    import { progress } from './scripts/progress.js?v=5';
+
+    renderHeader('home').catch(() => {});
+
+    (async () => {
+      const courseId = getQuery('id');
+      if (!courseId) { location.href = './index.html'; return; }
+
+      try {
+        const course = await content.getCourse(courseId);
+        const idx = await content.getLessonsIndex(courseId);
+        const user = await auth.current();
+        const allProgress = user ? await progress.getAll(user.id) : [];
+        const map = new Map(allProgress.map(p => [p.lessonId, p]));
+
+        document.title = `${course.title} · Amber Learn`;
+        const lessonIds = idx.lessons.map(l => l.id);
+        const courseProgress = allProgress.filter(p => lessonIds.includes(p.lessonId));
+        const completedLessons = courseProgress.filter(p => p.status === 'completed').length;
+        const percent = idx.lessons.length ? Math.round((completedLessons / idx.lessons.length) * 100) : 0;
+        const status = completedLessons === 0 ? 'not-started' : completedLessons === idx.lessons.length ? 'completed' : 'in-progress';
+
+        document.getElementById('courseHeader').innerHTML = `
+          <div class="card course-header-inner">
+            <div class="course-icon">${course.icon}</div>
+            <h1 class="course-title">${course.title}</h1>
+            <p class="course-description">${course.description}</p>
+            <div class="course-meta">
+              <span class="badge">${course.level}</span>
+              <span class="badge">${idx.lessons.length} уроков</span>
+            </div>
+          </div>
+        `;
+
+        const list = document.getElementById('lessonList');
+        list.innerHTML = idx.lessons.map((l, i) => {
+          const p = map.get(l.id);
+          const cls = p?.status === 'completed' ? 'done' : p?.status === 'in-progress' ? 'active' : '';
+          const badge = p?.status === 'completed'
+            ? '<span class="badge done">✓ готово</span>'
+            : p?.status === 'in-progress'
+            ? '<span class="badge active">в процессе</span>'
+            : '<span class="badge locked">не начат</span>';
+          return `
+            <a href="./lesson.html?course=${courseId}&lesson=${l.id}" class="card lesson-item">
+              <div class="lesson-item-num">${String(i + 1).padStart(2, '0')}</div>
+              <div class="lesson-item-content">
+                <div class="lesson-item-title">${l.title}</div>
+                <div class="lesson-item-summary">${l.summary || ''}</div>
+              </div>
+              ${badge}
+            </a>
+          `;
+        }).join('');
+      } catch (e) {
+        toast('Ошибка загрузки курса: ' + e.message, 'error');
+      }
+    })();
+  </script>
+
+   <script>
+    if ('serviceWorker' in navigator &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1') {
+      navigator.serviceWorker.register('./service-worker.js?v=5').then(reg => {
+        setInterval(() => reg.update(), 60000);
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'activated' && reg.active) {
+                const refreshing = sessionStorage.getItem('refreshing');
+                if (!refreshing) {
+                  sessionStorage.setItem('refreshing', '1');
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          const refreshing = sessionStorage.getItem('refreshing');
+          if (!refreshing) {
+            sessionStorage.setItem('refreshing', '1');
+            window.location.reload();
+          }
+        });
+      });
+    } else if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        rs.forEach(r => r.unregister());
+      });
+      if (window.caches) {
+        caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+      }
+    }
+   </script>
+</body>
+</html>
+

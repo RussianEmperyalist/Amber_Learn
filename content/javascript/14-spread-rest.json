@@ -1,0 +1,333 @@
+{
+  "id": "javascript-14-spread-rest",
+  "title": "Spread и Rest: швейцарский нож из трёх точек",
+  "goal": "Разворачивать коллекции (spread), собирать аргументы (rest), копировать без мутации",
+  "prereq": [
+    "javascript-07-arrays"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Три точки <code>...</code> в JavaScript — это <b>швейцарский нож</b>. С одной стороны — <b>spread</b> (развернуть): ты открываешь коробку и выкладываешь содержимое на полку. С другой — <b>rest</b> (собрать): ты gather'ишь все разбросанные вещи в одну коробку. Один оператор, два противоположных действия. Понять, <b>когда ты разворачиваешь, а когда собираешь</b> — значит перестать путаться в ...arr."
+    },
+    {
+      "type": "text",
+      "content": "<b>Spread</b> (...) разворачивает элементы массива или свойства объекта в отдельное место: <code>[...arr]</code> превращает массив в набор элементов. <b>Rest</b> (...) собирает оставшиеся элементы в массив: <code>function(...args)</code> собирает все аргументы функции в один массив. Оба используют один синтаксис <code>...</code>, но работают в противоположных направлениях. Spread — распаковка. Rest — упаковка."
+    },
+    {
+      "type": "heading",
+      "content": "Spread: разворачивание массива"
+    },
+    {
+      "type": "text",
+      "content": "Spread (...) берёт массив и 'выкладывает' его элементы отдельно. Это как открыть коробку с конфетами и выложить все конфеты на стол по одной. Часто используется для: вызова функции с аргументами из массива, объединения массивов, создания копии."
+    },
+    {
+      "type": "code",
+      "content": "const arr = [1, 2, 3];\n\n// Spread: разворачивает массив в отдельные значения\nconsole.log(...arr);  // 1 2 3 — каждый элемент отдельно\n\n// Math.max ждёт отдельные аргументы, а не массив\n// Math.max(arr) — не работает, а Math.max(...arr) — да\nconsole.log(Math.max(...arr));  // 3\n\n// Объединение массивов:\nconst combined = [...arr, 4, 5];\nconsole.log(combined);  // [1, 2, 3, 4, 5]"
+    },
+    {
+      "type": "predict",
+      "code": "const a = [1, 2];\nconst b = [...a, 3];\nconsole.log(b);",
+      "question": "Что в b?",
+      "options": [
+        "[[1, 2], 3]",
+        "[1, 2, 3]",
+        "[1, 2, 3, 3]",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "...a разворачивает массив a в элементы 1, 2. Новый массив: [1, 2, 3]. Spread НЕ создаёт вложенный массив — он выкладывает элементы."
+    },
+    {
+      "type": "heading",
+      "content": "Копирование массива без мутации"
+    },
+    {
+      "type": "text",
+      "content": "Одно из главных применений spread — <b>создание копии</b> массива. <code>[...arr]</code> — это НОВЫЙ массив с теми же элементами. Изменяешь копию — оригинал не тронут. Это решает проблему мутации: передаёшь в функцию копию, а не ссылку."
+    },
+    {
+      "type": "code",
+      "content": "const original = [1, 2, 3];\nconst copy = [...original];  // новый массив с теми же элементами\n\ncopy.push(4);  // меняем только копию\nconsole.log(original);  // [1, 2, 3] — оригинал не изменился!\nconsole.log(copy);      // [1, 2, 3, 4] — изменённая копия\n\n// Без spread (через ссылку) — обе переменные указывают на один массив:\nconst bad = original;\nbad.push(99);\nconsole.log(original);  // [1, 2, 3, 99] — оригинал ИЗМЕНИЛСЯ!"
+    },
+    {
+      "type": "heading",
+      "content": "Spread для объектов"
+    },
+    {
+      "type": "text",
+      "content": "Spread работает и с объектами: <code>{ ...obj }</code> создаёт новый объект с теми же свойствами. Это стандартный способ 'скопировать объект с изменениями' — базовый паттерн React и Redux."
+    },
+    {
+      "type": "code",
+      "content": "const user = { name: \"Alice\", age: 25 };\n\n// Копия объекта с изменением одного свойства:\nconst updated = { ...user, age: 26 };\nconsole.log(updated);  // { name: \"Alice\", age: 26 }\nconsole.log(user);     // { name: \"Alice\", age: 25 } — оригинал цел\n\n// Объединение объектов:\nconst defaults = { theme: \"dark\", lang: \"ru\" };\nconst userPrefs = { theme: \"light\" };\nconst settings = { ...defaults, ...userPrefs };\nconsole.log(settings);  // { theme: \"light\", lang: \"ru\" }"
+    },
+    {
+      "type": "predict",
+      "code": "const defaults = { a: 1, b: 2 };\nconst override = { b: 3, c: 4 };\nconst result = { ...defaults, ...override };\nconsole.log(result.b);",
+      "question": "Что выведется?",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "undefined"
+      ],
+      "answer": 2,
+      "explain": "Сначала {...defaults} даёт {a:1, b:2}, потом {...override} ПЕРЕЗАПИСЫВАЕТ b = 3. Latter wins — последний spread побеждает."
+    },
+    {
+      "type": "heading",
+      "content": "Rest: сбор аргументов в функцию"
+    },
+    {
+      "type": "text",
+      "content": "<b>Rest</b> (...) в параметрах функции собирает ВСЕ аргументы в один массив. Это как коробка, в которую складываешь все предметы. Не нужно писать <code>function(a, b, c, d, e)</code> — просто <code>function(...args)</code>. Работает только <b>последним</b> параметром."
+    },
+    {
+      "type": "code",
+      "content": "// Rest: собирает все аргументы в массив\nfunction sumAll(...nums) {\n  // nums — массив: [1, 2, 3]\n  return nums.reduce((acc, n) => acc + n, 0);\n}\n\nconsole.log(sumAll(1, 2, 3));      // 6\nconsole.log(sumAll(10, 20, 30, 40)); // 100\n\n// Rest в деструктуризации:\nconst [first, ...rest] = [1, 2, 3, 4];\nconsole.log(first);  // 1\nconsole.log(rest);   // [2, 3, 4] — остальные элементы"
+    },
+    {
+      "type": "predict",
+      "code": "function f(a, ...b) {\n  console.log(b.length);\n}\nf(1, 2, 3, 4);",
+      "question": "Что выведется?",
+      "options": [
+        "1",
+        "3",
+        "4",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "a = 1 (первый аргумент), b = [2, 3, 4] (rest собирает остальные). b.length = 3. Rest всегда собирает в массив, даже если один аргумент."
+    },
+    {
+      "type": "warning",
+      "content": "<b>Spread делает поверхностную копию (shallow copy).</b> Вложенные объекты и массивы копируются <b>по ссылке</b>, а не создаются заново. <code>{ ...obj }</code> — новый объект, но obj.nested — та же ссылка! Изменишь copy.nested.x — изменится и obj.nested.x. Для глубокой копии нужен structuredClone() или JSON.parse(JSON.stringify(obj))."
+    },
+    {
+      "type": "code",
+      "content": "const user = {\n  name: \"Alice\",\n  address: { city: \"Moscow\" }  // вложенный объект\n};\n\n// Поверхностная копия:\nconst copy = { ...user };\ncopy.name = \"Bob\";         // меняем верхний уровень — безопасно\ncopy.address.city = \"SPb\"; // меняем вложенный — ОПАСНО!\n\nconsole.log(user.address.city);  // \"SPb\" — оригинал ИЗМЕНИЛСЯ!\n// Потому что copy.address и user.address — одна и та же ссылка\n\n// Глубокая копия:\nconst deep = JSON.parse(JSON.stringify(user));\ndeep.address.city = \"Kazan\";\nconsole.log(user.address.city);  // \"SPb\" — оригинал цел"
+    },
+    {
+      "type": "heading",
+      "content": "Rest в деструктуризации объектов"
+    },
+    {
+      "type": "text",
+      "content": "Rest работает и с объектами: <code>const { name, ...other } = user</code> собирает все оставшиеся свойства в новый объект. Удобно для 'удаления поля без мутации': достаёшь name и age, а всё остальное остаётся в other."
+    },
+    {
+      "type": "code",
+      "content": "const user = { name: \"Alice\", age: 25, city: \"Moscow\", email: \"a@b.com\" };\n\n// Достаём name, а всё остальное собираем в other\nconst { name, ...other } = user;\nconsole.log(name);   // Alice\nconsole.log(other);  // { age: 25, city: \"Moscow\", email: \"a@b.com\" }\n\n// Удаление поля без мутации:\nconst { email, ...withoutEmail } = user;\nconsole.log(withoutEmail);  // { name: \"Alice\", age: 25, city: \"Moscow\" }"
+    },
+    {
+      "type": "heading",
+      "content": "Spread в вызове функции"
+    },
+    {
+      "type": "text",
+      "content": "Spread позволяет передать элементы массива как отдельные аргументы функции. Вместо <code>add(arr[0], arr[1], arr[2])</code> пишешь <code>add(...arr)</code>. Это незаменимо при работе с Math.max, Math.min, Function.apply."
+    },
+    {
+      "type": "code",
+      "content": "function add(a, b, c) {\n  return a + b + c;\n}\n\nconst nums = [1, 2, 3];\nconsole.log(add(...nums));  // 6 — add(1, 2, 3)\n\n// Math.max со spread:\nconsole.log(Math.max(...nums));  // 3\n\n// Spread для строк — в массив символов:\nconsole.log([...\"hey\"]);  // [\"h\", \"e\", \"y\"]"
+    },
+    {
+      "type": "tip",
+      "content": "Spread (...) в вызовах и литералах = <b>развернуть</b> (распаковать). Rest (...) в параметрах и деструктуризации = <b>собрать</b> (упаковать). Подсказка: если слева от = — это rest (собирает), если справа — spread (разворачивает)."
+    },
+    {
+      "type": "note",
+      "content": "Spread и rest — это не противоположные операции, а разные режимы одного синтаксиса. Spread разворачивает существующую коллекцию. Rest собирает разрозненные элементы в новую коллекцию."
+    },
+    {
+      "type": "heading",
+      "content": "Spread для объединения массивов"
+    },
+    {
+      "type": "text",
+      "content": "Spread — современный способ объединять массивы без concat. <code>[...a, ...b]</code> создаёт новый массив со всеми элементами. Порядок важен: элементы из a первыми, затем из b."
+    },
+    {
+      "type": "code",
+      "content": "const a = [1, 2, 3];\nconst b = [4, 5, 6];\n\n// Объединение через spread:\nconst merged = [...a, ...b];\nconsole.log(merged);  // [1, 2, 3, 4, 5, 6]\n\n// Вставка в середину:\nconst middle = [10, 20];\nconst full = [...a, ...middle, ...b];\nconsole.log(full);  // [1, 2, 3, 10, 20, 4, 5, 6]"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай массив arr = [1, 2, 3]. Создай копию через spread [...arr] и добавь 4. Выведи copy.join(',') (ожидаемый вывод: 1,2,3,4)",
+      "starter": "const arr = [1, 2, 3];\n// const copy = [...arr, 4];\n// console.log(copy.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.a",
+          "message": "Используй spread-оператор"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1,2,3,4",
+          "message": "spread объединяет массивы"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const a = [1, 2];\nconst b = [...a, 3, 4];\nconsole.log(b.join(\",\"));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай объект obj = { a: 1, b: 2 }. Скопируй его через spread и добавь свойство c = 3. Выведи copy.a и copy.c (ожидаемый вывод: 1 3)",
+      "starter": "const obj = { a: 1, b: 2 };\n// const copy = { ...obj, c: 3 };\n// console.log(copy.a, copy.c);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.\\w",
+          "message": "Spread для объектов"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1 3",
+          "message": "copy.a=1, copy.c=3"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const obj = { a: 1, b: 2 };\nconst copy = { ...obj, c: 3 };\nconsole.log(copy.a, copy.c);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай функцию sum(...args), которая суммирует все аргументы через reduce. Вызови sum(1, 2, 3, 4) и выведи результат (ожидаемый вывод: 10)",
+      "starter": "function sum(...args) {\n  return args.reduce((a, b) => a + b, 0);\n}\n// console.log(sum(1, 2, 3, 4));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.args",
+          "message": "Rest-параметр"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "10",
+          "message": "sum(1,2,3,4) = 10"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function sum(...args) {\n  return args.reduce((a, b) => a + b, 0);\n}\nconsole.log(sum(1, 2, 3, 4));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент написал функцию без rest-параметра, и она не работает с несколькими аргументами. Исправь: замени nums на ...nums.",
+      "starter": "function sumAll(nums) {\n  return nums.reduce((a, b) => a + b, 0);\n}\nconsole.log(sumAll(1, 2, 3));",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.a",
+          "message": "Spread объединяет массивы"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1,2,3,4,5,6",
+          "message": "[1,2,3] + [4,5,6]"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const a = [1, 2, 3];\nconst b = [4, 5, 6];\nconst c = [...a, ...b];\nconsole.log(c.join(\",\"));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай функцию pick(obj, ...keys), которая возвращает новый объект с только указанными ключами. Выведи Object.keys(pick({a:1,b:2,c:3}, 'a', 'c')).join(',') (ожидаемый вывод: a,c)",
+      "starter": "function pick(obj, ...keys) {\n  const result = {};\n  for (const k of keys) result[k] = obj[k];\n  return result;\n}\n// console.log(Object.keys(pick({ a: 1, b: 2, c: 3 }, \"a\", \"c\")).join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.\\.\\.keys",
+          "message": "Rest-параметр для ключей"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "a,c",
+          "message": "Ключи: a, c"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "function pick(obj, ...keys) {\n  const result = {};\n  for (const k of keys) result[k] = obj[k];\n  return result;\n}\nconsole.log(Object.keys(pick({ a: 1, b: 2, c: 3 }, \"a\", \"c\")).join(\",\"));"
+    }
+  ],
+  "recap": [
+    "Spread (...) разворачивает коллекцию в отдельные элементы/аргументы.",
+    "Rest (...) собирает элементы/аргументы в массив или объект.",
+    "[...arr] — поверхностная копия массива (вложенные объекты по ссылке).",
+    "{ ...obj } — поверхностная копия объекта.",
+    "function f(...args) — rest собирает все аргументы в массив.",
+    "const { a, ...rest } = obj — достаёт a, остальное собирает в rest."
+  ],
+  "quiz": [
+    {
+      "q": "Что делает spread в [ ...a, 4 ]?",
+      "options": [
+        "Создаёт вложенный массив",
+        "Разворачивает a в элементы",
+        "Копирует ссылку",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Spread разворачивает элементы a и добавляет 4 в новый массив."
+    },
+    {
+      "q": "Где должен стоять rest (...rest) в параметрах?",
+      "options": [
+        "В начале",
+        "В любом месте",
+        "В конце",
+        "Не важно"
+      ],
+      "answer": 2,
+      "explain": "Rest собирает «остальные» аргументы, поэтому всегда последний."
+    },
+    {
+      "q": "Является ли spread глубокой копией?",
+      "options": [
+        "Да",
+        "Нет, только поверхностная копия",
+        "Только для массивов",
+        "Только для объектов"
+      ],
+      "answer": 1,
+      "explain": "Spread копирует только верхний уровень. Вложенные объекты остаются общими."
+    }
+  ]
+}

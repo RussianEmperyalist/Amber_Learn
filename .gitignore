@@ -1,0 +1,16 @@
+# База данных (пароли, прогресс)
+data/
+
+# Результаты тестов
+test-results/
+
+# Локальные файлы
+*.log
+.env
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,341 @@
+{
+  "id": "javascript-29-project-calc",
+  "title": "Проект: Калькулятор",
+  "goal": "Собрать работающий калькулятор из классов, событий, форм и валидации",
+  "prereq": [
+    "javascript-16-classes",
+    "javascript-26-dom-basics",
+    "javascript-27-events",
+    "javascript-28-forms"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты научил все необходимые инструменты: <b>классы</b> для логики, <b>события</b> для реакций, <b>формы</b> для ввода данных. Теперь соберём всё в <b>настоящее приложение</b> — калькулятор. Это не учебное задание, а реальный инструмент: пользователь вводит числа, выбирает операцию, получает результат. Каждое нажатие кнопки — событие. Каждая операция — метод класса. Это то, что делают веб-разработчики каждый день."
+    },
+    {
+      "type": "text",
+      "content": "<b>Калькулятор</b> — отличный проект для практики, потому что он объединяет всё: классы (логика), события (клики по кнопкам), DOM (интерфейс), валидацию (проверка ввода) и обработку ошибок (деление на ноль). Каждый компонент работает независимо, но вместе создаёт работающее приложение."
+    },
+    {
+      "type": "code",
+      "content": "// Класс логики калькулятора\nclass Calculator {\n  constructor() {\n    this.result = 0;\n  }\n\n  // Методы операций\n  add(a, b) { return a + b; }\n  subtract(a, b) { return a - b; }\n  multiply(a, b) { return a * b; }\n\n  // Деление — требует защиты\n  divide(a, b) {\n    if (b === 0) throw new Error(\"Деление на ноль\");\n    return a / b;\n  }\n\n  // Вычисление через dispatch\n  calculate(a, b, operator) {\n    const methods = {\n      \"+\": this.add,\n      \"-\": this.subtract,\n      \"*\": this.multiply,\n      \"/\": this.divide\n    };\n    const method = methods[operator];\n    if (!method) throw new Error(\"Неизвестная операция\");\n    return method(a, b);\n  }\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Архитектура: класс + DOM"
+    },
+    {
+      "type": "text",
+      "content": "Разделяй <b>логику</b> и <b>интерфейс</b>. Класс Calculator знает только про математику. Код, который работает с DOM, знает только про кнопки и поля ввода. Они общаются через функции: DOM передаёт данные в класс, класс возвращает результат."
+    },
+    {
+      "type": "code",
+      "content": "// Логика (класс)\nconst calc = new Calculator();\n\n// Интерфейс (DOM)\nconst display = document.querySelector(\"#display\");\nconst btns = document.querySelectorAll(\".btn\");\n\nbtns.forEach(btn => {\n  btn.addEventListener(\"click\", () => {\n    const operator = btn.dataset.operator;\n    const a = Number(display.value);\n\n    try {\n      const result = calc.calculate(a, 10, operator);\n      display.value = result;  // показываем результат\n    } catch (e) {\n      display.value = \"Error\";  // показываем ошибку\n    }\n  });\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Делегирование событий для кнопок"
+    },
+    {
+      "type": "text",
+      "content": "Вместо подписки на каждую кнопку — подписываемся на <b>родительский контейнер</b>. Обработчик смотрит на event.target и понимает, какая кнопка нажата. Экономит память и работает с динамическими кнопками."
+    },
+    {
+      "type": "code",
+      "content": "const calcPanel = document.querySelector(\".calc-panel\");\n\n// Один обработчик для всех кнопок\ncalcPanel.addEventListener(\"click\", (event) => {\n  const btn = event.target.closest(\".btn\");\n  if (!btn) return;  // кликнули не по кнопке\n\n  const action = btn.dataset.action;\n  const value = btn.dataset.value;\n\n  if (action === \"operator\") {\n    handleOperator(value);  // +, -, *, /\n  } else if (action === \"digit\") {\n    handleDigit(value);     // 0-9\n  } else if (action === \"clear\") {\n    handleClear();\n  }\n});"
+    },
+    {
+      "type": "predict",
+      "code": "class Calc {\n  divide(a, b) { return a / b; }\n}\nconsole.log(new Calc().divide(10, 0));",
+      "question": "Что выведется?",
+      "options": [
+        "Infinity",
+        "Ошибка",
+        "NaN",
+        "0"
+      ],
+      "answer": 0,
+      "explain": "JS сам НЕ проверяет деление на ноль: 10 / 0 = Infinity. Это стандарт IEEE 754, а не ошибка. Нужно проверять явно: if (b === 0) throw new Error(...)."
+    },
+    {
+      "type": "predict",
+      "code": "class Calc {\n  add(a, b) { return a + b; }\n  multiply(a, b) { return a * b; }\n}\nconst c = new Calc();\nconsole.log(c.add(10, 0));\nconsole.log(c.multiply(10, 0));",
+      "question": "Что выведется?",
+      "options": [
+        "10 и 0",
+        "Ошибка и 0",
+        "NaN и NaN",
+        "undefined и undefined"
+      ],
+      "answer": 0,
+      "explain": "add(10,0)=10, multiply(10,0)=0. Операции + и * нормально работают с нулём. Проблема только у /."
+    },
+    {
+      "type": "warning",
+      "content": "<b>Деление на ноль: JS вернёт Infinity, а не ошибку!</b> Это самая коварная ловушка калькулятора. Если написать просто <code>return a / b</code>, пользователь увидит 'Infinity' вместо внятного сообщения. Правильно: проверить делитель ДО вычисления и бросить нормальную ошибку: <code>if (b === 0) throw new Error(\"Нельзя делить на ноль\")</code>."
+    },
+    {
+      "type": "heading",
+      "content": "Обработка ошибок в UI"
+    },
+    {
+      "type": "text",
+      "content": "Когда калькулятор выбрасывает ошибку (деление на ноль, неизвестная операция), нужно <b>показать пользователю</b>, а не сломать приложение. Оберни вычисление в try/catch и покажи сообщение об ошибке вместо результата."
+    },
+    {
+      "type": "code",
+      "content": "btn.addEventListener(\"click\", () => {\n  const a = Number(displayA.value);\n  const b = Number(displayB.value);\n\n  try {\n    const result = calc.calculate(a, b, operator);\n    displayResult.value = result;  // нормальный результат\n  } catch (error) {\n    displayResult.value = \"Ошибка\";  // показываем ошибку пользователю\n    console.error(\"Калькулятор:\", error.message);\n  }\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Валидация ввода"
+    },
+    {
+      "type": "text",
+      "content": "Ввод пользователя может быть любым: буквы, пробелы, пустая строка. <code>Number('abc')</code> = NaN. <code>Number('  42  ')</code> = 42 (пробелы игнорируются). Нужно проверять, что ввод — число, прежде чем вычислять."
+    },
+    {
+      "type": "code",
+      "content": "function isValidNumber(str) {\n  return !isNaN(Number(str)) && str.trim() !== \"\";\n}\n\n// Валидация перед вычислением\nif (!isValidNumber(displayA.value) || !isValidNumber(displayB.value)) {\n  displayResult.value = \"Введите числа\";\n  return;  // не считаем мусор\n}\n\nconst result = calc.calculate(Number(displayA.value), Number(displayB.value), operator);\ndisplayResult.value = result;"
+    },
+    {
+      "type": "heading",
+      "content": "Инициализация и очистка"
+    },
+    {
+      "type": "text",
+      "content": "При загрузке страницы инициализируй калькулятор: обнуляй дисплей, очищай поля. Кнопка 'C' (Clear) сбрасывает текущий ввод. Разница: C отменяет последнюю операцию, AC — полный сброс состояния."
+    },
+    {
+      "type": "code",
+      "content": "const clearBtn = document.querySelector(\".clear\");\nclearBtn.addEventListener(\"click\", () => {\n  displayA.value = \"\";\n  displayB.value = \"\";\n  displayResult.value = \"0\";  // сброс дисплея\n});\n\n// Инициализация при загрузке\ndocument.addEventListener(\"DOMContentLoaded\", () => {\n  displayResult.value = \"0\";\n});"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>data-*</code> атрибуты на кнопках для хранения действий и значений. <code>&lt;button data-action=\"operator\" data-value=\"+\"&gt;+&lt;/button&gt;</code> — обработчик читает атрибуты и понимает, что делать. Это чище, чем писать обработчики для каждой кнопки отдельно."
+    },
+    {
+      "type": "heading",
+      "content": "Полный цикл: от клика до результата"
+    },
+    {
+      "type": "text",
+      "content": "Пользователь нажимает кнопку — событие click → обработчик читает данные из display → валидирует → вызывает метод класса → получает результат → показывает на дисплее. Это полный цикл взаимодействия: пользователь → DOM → логика → DOM → пользователь."
+    },
+    {
+      "type": "code",
+      "content": "// Полный цикл калькулятора\n// 1. Пользователь нажимает кнопку '+'\n// 2. Событие click всплывает до .calc-panel\n// 3. event.target.closest('.btn') находит нажатую кнопку\n// 4. btn.dataset.value = '+', btn.dataset.action = 'operator'\n// 5. Считываем числа из display\n// 6. Валидируем: не пусто, не NaN\n// 7. Вызываем calc.calculate(a, b, '+')\n// 8. try/catch ловит деление на ноль\n// 9. Показываем результат или ошибку на дисплее"
+    },
+    {
+      "type": "heading",
+      "content": "Расширение калькулятора"
+    },
+    {
+      "type": "text",
+      "content": "Теперь, когда базовый калькулятор работает, можно добавлять функции: процент, возведение в степень, история операций, скобки. Каждая новая функция — новый метод в Calculator. Интерфейс расширяется кнопками, логика — методами класса."
+    },
+    {
+      "type": "code",
+      "content": "// Расширение Calculator\nclass Calculator {\n  // ... существующие методы\n\n  // Новая операция: процент\n  percent(a, b) {\n    return a * b / 100;\n  }\n\n  // Возведение в степень\n  power(a, b) {\n    return Math.pow(a, b);\n  }\n\n  // История операций\n  #history = [];\n\n  record(a, b, operator, result) {\n    this.#history.push({ a, b, operator, result });\n  }\n\n  getHistory() {\n    return [...this.#history];  // копия, не оригинал\n  }\n}"
+    },
+    {
+      "type": "note",
+      "content": "Калькулятор — это мост между учебными примерами и реальными приложениями. Ты научился использовать классы, события, DOM, валидацию и обработку ошибок вместе. Это фундамент для любых интерактивных веб-приложений."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай класс Calculator с методом add(a,b) и методом divide(a,b) (с проверкой b===0). Вызови calculate(10,2,'divide') через объект и выведи результат (ожидаемый вывод: 5)",
+      "starter": "class Calculator {\n  add(a, b) { return a + b; }\n  subtract(a, b) { return a - b; }\n  multiply(a, b) { return a * b; }\n  divide(a, b) {\n    if (b === 0) throw new Error(\"Деление на ноль\");\n    return a / b;\n  }\n  calculate(a, b, op) {\n    return this[op](a, b);\n  }\n}\nconst calc = new Calculator();\n// console.log(calc.calculate(10, 2, 'divide'));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "add"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bfunction\\s+add\\b",
+          "message": "Объяви функцию add"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "5",
+          "message": "add(2,3) = 5"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function add(a, b) { return a + b; }\nconsole.log(add(2, 3));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай функцию sub(a, b), которая возвращает разность. Вызови sub(10, 4) и выведи результат (ожидаемый вывод: 6)",
+      "starter": "function sub(a, b) { return a - b; }\n// console.log(sub(10, 4));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "sub"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bfunction\\s+sub\\b",
+          "message": "Объяви функцию sub"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "6",
+          "message": "sub(10,4) = 6"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "function sub(a, b) { return a - b; }\nconsole.log(sub(10, 4));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай функцию calc(a, op, b) с if/else для операторов +, -, *, /. Вызови calc(10, '+', 5) и выведи результат (ожидаемый вывод: 15)",
+      "starter": "function calc(a, op, b) {\n  if (op === \"+\") return a + b;\n  if (op === \"-\") return a - b;\n  if (op === \"*\") return a * b;\n  if (op === \"/\") return a / b;\n}\n// console.log(calc(10, \"+\", 5));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bfunction\\s+calc\\b",
+          "message": "Объяви функцию calc"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bif\\b",
+          "message": "Используй if/else"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "15",
+          "message": "calc(10, \"+\", 5) = 15"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function calc(a, op, b) {\n  if (op === \"+\") return a + b;\n  if (op === \"-\") return a - b;\n  if (op === \"*\") return a * b;\n  if (op === \"/\") return a / b;\n}\nconsole.log(calc(10, \"+\", 5));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай функцию calc(a, op, b). Для деления если b === 0, верни строкку 'ошибка', иначе a / b. Вызови calc(10, '/', 0) (ожидаемый вывод: ошибка)",
+      "starter": "function calc(a, op, b) {\n  if (op === \"/\") return b === 0 ? \"ошибка\" : a / b;\n  return a + b;\n}\n// console.log(calc(10, \"/\", 0));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "b\\s*===\\s*0",
+          "message": "Проверка деления на ноль"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "ошибка",
+          "message": "calc(10, \"/\", 0) → \"ошибка\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "function calc(a, op, b) {\n  if (op === \"/\") return b === 0 ? \"ошибка\" : a / b;\n  return a + b;\n}\nconsole.log(calc(10, \"/\", 0));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай функцию calc(a, op, b) с switch для +, -, *, /. Вызови calc(6, '*', 7) и выведи результат (ожидаемый вывод: 42)",
+      "starter": "function calc(a, op, b) {\n  switch (op) {\n    case \"+\": return a + b;\n    case \"-\": return a - b;\n    case \"*\": return a * b;\n    case \"/\": return a / b;\n  }\n}\n// console.log(calc(6, \"*\", 7));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bswitch\\b",
+          "message": "Используй switch"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bcase\\b",
+          "message": "Используй case"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "42",
+          "message": "calc(6, \"*\", 7) = 42"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "function calc(a, op, b) {\n  switch (op) {\n    case \"+\": return a + b;\n    case \"-\": return a - b;\n    case \"*\": return a * b;\n    case \"/\": return a / b;\n  }\n}\nconsole.log(calc(6, \"*\", 7));"
+    }
+  ],
+  "recap": [
+    "Калькулятор = класс (логика) + DOM (интерфейс) + события (реакции).",
+    "Класс Calculator: add, subtract, multiply, divide, calculate.",
+    "Деление на ноль: JS вернёт Infinity — проверяй явно и бросай ошибку.",
+    "try/catch: ловит ошибки и показывает пользователю понятное сообщение.",
+    "Валидация: не NaN, не пусто, не буквы.",
+    "Делегирование: один обработчик на контейнер + event.target."
+  ],
+  "quiz": [
+    {
+      "q": "Чему равно 10 / 0 в JavaScript?",
+      "options": [
+        "0",
+        "undefined",
+        "Infinity",
+        "Ошибка"
+      ],
+      "answer": 2,
+      "explain": "10 / 0 = Infinity. Не ошибка — стандарт IEEE 754. Проверяй явно!"
+    },
+    {
+      "q": "Как отделить логику от интерфейса?",
+      "options": [
+        "Весь код в одном файле",
+        "Класс для логики, DOM-код отдельно",
+        "Без классов",
+        "Без событий"
+      ],
+      "answer": 1,
+      "explain": "Класс хранит логику, DOM-код работает с интерфейсом. Они общаются через функции."
+    },
+    {
+      "q": "Как показать ошибку пользователю?",
+      "options": [
+        "console.error",
+        "throw Error",
+        "try/catch + дисплей",
+        "alert"
+      ],
+      "answer": 2,
+      "explain": "try/catch ловит ошибку, catch показывает сообщение на дисплее вместо результата."
+    }
+  ]
+}

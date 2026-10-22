@@ -1,0 +1,316 @@
+{
+  "id": "javascript-22-modules",
+  "title": "Модули: конструктор LEGO",
+  "goal": "Разделять код на модули, использовать export/import, понимать named vs default",
+  "prereq": [
+    "javascript-09-functions"
+  ],
+  "duration": 16,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Если бы LEGO был одной огромной деталью — ты не соберёшь из него ничего. Сила LEGO в <b>маленьких кирпичиках</b>, которые соединяются. Модули в JavaScript — это те же кирпичики. Вместо одного файла на 10000 строк ты разбиваешь код на маленькие блоки: <code>math.js</code>, <code>user.js</code>, <code>api.js</code>. Каждый делает одно дело хорошо. А потом <code>import</code> соединяет их как LEGO."
+    },
+    {
+      "type": "text",
+      "content": "<b>Модуль (ES Module)</b> — это файл JavaScript с собственной областью видимости. Переменные внутри модуля <b>не видны снаружи</b>, пока ты явно не экспортируешь их через <code>export</code>. Другой файл подключает модуль через <code>import</code>. Это даёт: изоляцию, переиспользование, чистую архитектуру."
+    },
+    {
+      "type": "code",
+      "content": "// math.js\nexport const PI = 3.14159;  // экспортируем константу\n\nexport function add(a, b) {\n  return a + b;  // экспортируем функцию\n}\n\n// app.js\nimport { PI, add } from './math.js';\nconsole.log(PI);      // 3.14159\nconsole.log(add(2, 3));  // 5"
+    },
+    {
+      "type": "heading",
+      "content": "Зачем нужна изоляция кода"
+    },
+    {
+      "type": "text",
+      "content": "Без модулей весь код живёт в одной глобальной области. Две библиотеки могут случайно определить переменную с одинаковым именем — и одна сломает другую. Модули решают это: каждый файл имеет свою область видимости. Конфликтов имён <b>физически не может быть</b>."
+    },
+    {
+      "type": "code",
+      "content": "// Без модулей: конфликт!\n// lib1.js: const utils = { format: ... }\n// lib2.js: const utils = { parse: ... }  // перезаписал! БАГ!\n\n// С модулями: изоляция\n// lib1.js\nexport const utils = { format() { /*...*/ } };\n\n// lib2.js\nexport const utils = { parse() { /*...*/ } };\n\n// app.js — импортируем под разными именами\nimport { utils as fmt } from './lib1.js';\nimport { utils as parse } from './lib2.js';\n// Никакого конфликта!"
+    },
+    {
+      "type": "heading",
+      "content": "Named export: export {name}"
+    },
+    {
+      "type": "text",
+      "content": "<b>Named export</b> — экспорт по имени. Можно экспортировать несколько вещей из одного файла. При импорте имена должны совпадать — <code>{ add }</code> найдёт именно <code>add</code>. Порядок импорта не важен, имена важны."
+    },
+    {
+      "type": "code",
+      "content": "// utils.js — несколько named exports\nexport const name = \"Alice\";\nexport const age = 25;\n\nexport function greet() {\n  return `Hi, ${name}`;\n}\n\n// app.js — импортируем по именам\nimport { name, greet } from './utils.js';\nconsole.log(name);     // Alice\nconsole.log(greet());   // Hi, Alice\n\n// Можно импортировать всё звёздочкой:\nimport * as utils from './utils.js';\nconsole.log(utils.name);  // Alice"
+    },
+    {
+      "type": "heading",
+      "content": "Default export: export default"
+    },
+    {
+      "type": "text",
+      "content": "<b>Default export</b> — главный экспорт файла. В файле может быть <b>только один</b> default. При импорте имя можно выбрать любое. Полезно когда модуль экспортирует одну главную сущность: класс, компонент, конфигурацию."
+    },
+    {
+      "type": "code",
+      "content": "// user.js — default export\nclass User {\n  constructor(name) { this.name = name; }\n}\nexport default User;  // главный экспорт файла\n\n// app.js — импорт default (имя выбираешь сам)\nimport Person from './user.js';  // Person = User\nconst p = new Person(\"Alice\");\nconsole.log(p.name);  // Alice\n\n// Важно: default импортируется БЕЗ фигурных скобок!"
+    },
+    {
+      "type": "predict",
+      "code": "// module.js\nexport const x = 1;\nexport const y = 2;\n\n// app.js\nimport { y, x } from './module.js';\nconsole.log(x + y);",
+      "question": "Что выведется? И важен ли порядок в import?",
+      "options": [
+        "Ошибка — порядок неверный",
+        "3 — порядок не важен",
+        "undefined",
+        "2"
+      ],
+      "answer": 1,
+      "explain": "Named imports работают по ИМЕНАМ, а не по порядку. { y, x } === { x, y }. Оба найдут свои значения. Выведется 3."
+    },
+    {
+      "type": "warning",
+      "content": "<b>Cannot use import statement outside a module.</b> Эта ошибка возникает когда браузер или Node не знают, что файл — ES-модуль. Для браузера добавь <code>&lt;script type=\"module\"&gt;</code> в HTML. Для Node — поставь <code>\"type\": \"module\"</code> в package.json или расширение <code>.mjs</code>. Без этого import не работает."
+    },
+    {
+      "type": "code",
+      "content": "<!-- index.html -->\n<!-- БАГ: без type=\"module\" -->\n<!-- <script src=\"app.js\"></script>  // SyntaxError: Cannot use import -->\n\n<!-- ПРАВИЛЬНО: type=\"module\" -->\n<script type=\"module\" src=\"app.js\"></script>\n\n// app.js теперь видит import/export\nimport { helper } from './helper.js';  // работает!"
+    },
+    {
+      "type": "predict",
+      "code": "// math.js\nexport default function add(a, b) { return a + b; }\n\n// app.js\nimport { add } from './math.js';\nconsole.log(add(1, 2));",
+      "question": "Что выведется?",
+      "options": [
+        "3",
+        "undefined",
+        "Ошибка — имя не совпало",
+        "NaN"
+      ],
+      "answer": 3,
+      "explain": "Default export импортируется БЕЗ фигурных скобок: import add from './math.js'. С фигурными скобками { add } ищется named export, которого нет → undefined → undefined(1,2) = TypeError/NaN."
+    },
+    {
+      "type": "heading",
+      "content": "Импорт с переименованием: as"
+    },
+    {
+      "type": "text",
+      "content": "Используй <code>as</code> чтобы дать импортируемому имени другое имя. Помогает при конфликтах: два модуля экспортируют <code>format()</code> — переименуй один. Также для коротких имён: <code>import { veryLongName as vln }</code>."
+    },
+    {
+      "type": "code",
+      "content": "// utils.js\nexport function formatDate(d) { /*...*/ }\n\n// app.js — переименовываем\nimport { formatDate as fmtDate } from './utils.js';\nconsole.log(fmtDate(new Date()));  // используем как fmtDate\n\n// Импорт ВСЕГО с пространством имён\nimport * as Utils from './utils.js';\nUtils.formatDate(new Date());  // доступ через пространство имён"
+    },
+    {
+      "type": "heading",
+      "content": "Ограничения модулей"
+    },
+    {
+      "type": "text",
+      "content": "import можно писать только в начале файла (statements не выполняются до загрузки). Невозможно условно импортировать: <code>if (x) import {...}</code> — так нельзя. Для динамической загрузки используй <code>await import('./mod.js')</code> — он возвращает Promise."
+    },
+    {
+      "type": "code",
+      "content": "// Статический импорт — всегда в начале, безусловный\nimport { add } from './math.js';\n\n// Динамический импорт — по условию, ленивая загрузка\nbutton.addEventListener('click', async () => {\n  // Загрузим тяжёлый модуль только когда пользователь нажал\n  const heavy = await import('./heavy-module.js');\n  heavy.doWork();\n});\n\n// Так можно условно загружать большие библиотеки!"
+    },
+    {
+      "type": "tip",
+      "content": "Правило хорошего тона: один default export на файл (главная сущность) + сколько угодно named exports (дополнения). Классы обычно идут как default, утилиты — как named. Не смешивай default и named для одной функции."
+    },
+    {
+      "type": "heading",
+      "content": "Реэкспорт: export {x} from"
+    },
+    {
+      "type": "text",
+      "content": "Можно пробрасывать экспорт из другого модуля, не импортируя его локально. Часто используется в <code>index.js</code> для создания удобного интерфейса к папке модулей."
+    },
+    {
+      "type": "code",
+      "content": "// components/Button.js\nexport const Button = () => { /*...*/ };\n\n// components/Input.js\nexport const Input = () => { /*...*/ };\n\n// components/index.js — реэкспорт всего\nexport { Button } from './Button.js';\nexport { Input } from './Input.js';\n\n// app.js — импорт из одного места\nimport { Button, Input } from './components/index.js';"
+    },
+    {
+      "type": "note",
+      "content": "Модули выполняются в строгом режиме ('use strict') автоматически. Объявления var не попадают в глобальную область — они живут внутри модуля. Переменные модуля недоступны в консоли браузера — это инкапсуляция."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Дан объект utils с методом sum. Импортируй utils через import * as и вызови utils.sum(2, 3). Выведи результат (ожидаемый вывод: 5)",
+      "starter": "// import * as utils from './math.js';\n// console.log(utils.sum(2, 3));\nconst utils = { sum: (a, b) => a + b };\nconsole.log(utils.sum(2, 3));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "module\\.exports",
+          "message": "Используй module.exports"
+        },
+        {
+          "kind": "has-call",
+          "name": "add"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function add(a, b) { return a + b; }\nmodule.exports = { add };"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Смоделируй named export: создай объект config со свойствами host='localhost' и port=3000. Выведи host (ожидаемый вывод: localhost)",
+      "starter": "// const config = { host: 'localhost', port: 3000 };\n// console.log(config.host);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "module\\.exports",
+          "message": "Используй module.exports"
+        },
+        {
+          "kind": "var",
+          "name": "x",
+          "equals": 42,
+          "message": "module.exports.x = 42"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const x = 42;\nmodule.exports = { x };"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай функцию greet(name), которая возвращает 'Hi ' + name. Вызови greet('test') и выведи результат (ожидаемый вывод: Hi test)",
+      "starter": "function greet(name) { return \"Hi \" + name; }\n// console.log(greet(\"test\"));\n",
+      "checks": [
+        {
+          "kind": "has-call",
+          "name": "greet"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bfunction\\s+greet\\b",
+          "message": "Объяви функцию greet"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Hi test",
+          "message": "greet(\"test\")"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function greet(name) { return \"Hi \" + name; }\nconsole.log(greet(\"test\"));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент пишет import utils from './math.js' и получает undefined, хотя math.js использует export {sum}. Исправь: нужен named import import { sum }.",
+      "starter": "// Правильно было бы: import { sum } from './math.js'\nconst mod = { sum: (a,b) => a+b };\nconst wrong = mod.default;\nconsole.log(wrong);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "=>",
+          "message": "Используй стрелочную функцию"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "sum(1,2) = 3"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const sum = (a, b) => a + b;\nconsole.log(sum(1, 2));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай класс Data с constructor(v), который сохраняет v в this.v. Создай new Data(99) и выведи .v (ожидаемый вывод: 99)",
+      "starter": "class Data { constructor(v) { this.v = v; } }\n// console.log(new Data(99).v);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Data\\b",
+          "message": "Объяви класс Data"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "99",
+          "message": "new Data(99).v"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Data { constructor(v) { this.v = v; } }\nconsole.log(new Data(99).v);"
+    }
+  ],
+  "recap": [
+    "Модуль = файл со своей областью видимости (изоляция).",
+    "export — сделать доступным, import — подключить.",
+    "Named export: export {x} / import {x} — по имени.",
+    "Default export: export default X / import X — главный, одно на файл.",
+    "import * as ns — всё под пространством имён.",
+    "import { x as y } — переименование при импорте."
+  ],
+  "quiz": [
+    {
+      "q": "Сколько default export может быть в файле?",
+      "options": [
+        "Сколько угодно",
+        "Ровно один",
+        "Ни одного",
+        "Два"
+      ],
+      "answer": 1,
+      "explain": "В файле может быть только один default export."
+    },
+    {
+      "q": "Как исправить 'Cannot use import outside a module'?",
+      "options": [
+        "Удалить import",
+        "Добавить type=\"module\"",
+        "Перезапустить браузер",
+        "Использовать require"
+      ],
+      "answer": 1,
+      "explain": "Нужно сообщить окружению, что файл — ES-модуль: type=\"module\" в HTML."
+    },
+    {
+      "q": "Важен ли порядок в import { a, b }?",
+      "options": [
+        "Да, обязателен",
+        "Нет, имена важнее порядка",
+        "Только для default",
+        "Только в Node"
+      ],
+      "answer": 1,
+      "explain": "Named import сопоставляется по именам — порядок не важен."
+    }
+  ]
+}

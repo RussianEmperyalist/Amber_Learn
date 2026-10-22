@@ -1,0 +1,345 @@
+{
+  "id": "javascript-17-inheritance",
+  "title": "Наследование: эволюция классов",
+  "goal": "Использовать extends, super, переопределять методы, понимать полиморфизм",
+  "prereq": [
+    "javascript-16-classes"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "В природе виды эволюционируют: из общего предка <b>Animal</b> появились <b>Dog</b>, <b>Cat</b>, <b>Bird</b>. Каждый потомок унаследовал от предка всё: дыхательную систему, сердцебиение. Но добавил своё: Dog научился лаять, Bird — летать. В JavaScript точно так же: <code>class Dog extends Animal</code> — Dog получает ВСЕ методы Animal и добавляет свои. Не нужно копировать код — достаточно <b>унаследовать</b>."
+    },
+    {
+      "type": "text",
+      "content": "<b>Наследование</b> — механизм, при котором один класс (дочерний, потомок) получает свойства и методы другого класса (родительского, базового). В JS это делается через ключевое слово <code>extends</code>. Цель — <b>DRY</b> (Don't Repeat Yourself): общий код живёт в родителе, а потомки специализируются на своём."
+    },
+    {
+      "type": "code",
+      "content": "// Родительский класс\nclass Animal {\n  constructor(name) {\n    this.name = name;  // name есть у ВСЕХ животных\n  }\n\n  eat() {\n    return `${this.name} eats`;\n  }\n}\n\n// Дочерний класс — наследует всё от Animal\nclass Dog extends Animal {\n  bark() {\n    return `${this.name} says Woof`;  // this.name приходит из Animal!\n  }\n}\n\nconst rex = new Dog(\"Rex\");\nconsole.log(rex.eat());   // Rex eats — метод родителя!\nconsole.log(rex.bark());  // Rex says Woof — свой метод"
+    },
+    {
+      "type": "heading",
+      "content": "extends — ключевое слово наследования"
+    },
+    {
+      "type": "text",
+      "content": "<code>extends</code> связывает классы: дочерний получает доступ ко всем методам родителя (кроме constructor). Можно вызывать методы родителя внутри дочерних через <code>super.method()</code>. Наследование может быть цепочкой: A -> B -> C."
+    },
+    {
+      "type": "code",
+      "content": "class Vehicle {\n  constructor(speed) {\n    this.speed = speed;\n  }\n  move() {\n    return `Moving at ${this.speed}`;\n  }\n}\n\nclass Car extends Vehicle {\n  constructor(speed, brand) {\n    super(speed);      // вызываем constructor родителя\n    this.brand = brand; // добавляем своё\n  }\n}\n\nclass SportCar extends Car {\n  constructor(brand) {\n    super(300, brand);  // speed=300 по умолчанию\n  }\n}\n\nconst car = new SportCar(\"Ferrari\");\nconsole.log(car.move());  // Moving at 300\nconsole.log(car.brand);   // Ferrari"
+    },
+    {
+      "type": "heading",
+      "content": "super() — вызов родителя"
+    },
+    {
+      "type": "text",
+      "content": "<code>super()</code> внутри constructor вызывает <b>constructor родителя</b>. Это обязательно, если дочерний класс объявил свой constructor. Без super() поле <code>this</code> не инициализировано, и любое обращение к this выбросит ReferenceError. Вызови super() ПЕРВЫМ, до использования this."
+    },
+    {
+      "type": "code",
+      "content": "class Employee {\n  constructor(name, salary) {\n    this.name = name;\n    this.salary = salary;\n  }\n  info() {\n    return `${this.name}: ${this.salary}`;\n  }\n}\n\nclass Manager extends Employee {\n  constructor(name, salary, teamSize) {\n    super(name, salary);  // 1. Сначала родитель инициализирует name, salary\n    this.teamSize = teamSize;  // 2. Потом добавляем своё\n  }\n}\n\nconst m = new Manager(\"Alice\", 5000, 10);\nconsole.log(m.info());    // Alice: 5000 — метод родителя работает!\nconsole.log(m.teamSize);  // 10 — наше поле"
+    },
+    {
+      "type": "warning",
+      "content": "<b>ReferenceError: Must call super constructor in derived class.</b> Если в дочернем классе объявлен constructor, но не вызван super(), любая попытка обратиться к this упадёт с ошибкой. super() должен быть ПЕРВЫМ оператором, использующим this. Без super() this просто не существует."
+    },
+    {
+      "type": "code",
+      "content": "class Base {\n  constructor(x) {\n    this.x = x;\n  }\n}\n\nclass Bad extends Base {\n  constructor(x) {\n    // Забыли super(x)!\n    this.x = x;  // ReferenceError: Must call super constructor\n  }\n}\n\n// Правильно:\nclass Good extends Base {\n  constructor(x, y) {\n    super(x);  // Сначала super — this теперь доступен\n    this.y = y;\n  }\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Переопределение методов (полиморфизм)"
+    },
+    {
+      "type": "text",
+      "content": "Дочерний класс может <b>переопределить</b> метод родителя — объявить метод с тем же именем. При вызове JavaScript возьмёт метод из дочернего класса. Это называется <b>полиморфизм</b>: один и тот же вызов ведёт себя по-разному для разных типов."
+    },
+    {
+      "type": "code",
+      "content": "class Animal {\n  speak() {\n    return \"Some sound\";\n  }\n}\n\nclass Dog extends Animal {\n  speak() {  // переопределили метод\n    return \"Woof\";\n  }\n}\n\nclass Cat extends Animal {\n  speak() {  // по-своему переопределили\n    return \"Meow\";\n  }\n}\n\nconst animals = [new Animal(), new Dog(), new Cat()];\nfor (const a of animals) {\n  console.log(a.speak());  // одинаковый вызов, разные результаты!\n}\n// Some sound\n// Woof\n// Meow"
+    },
+    {
+      "type": "predict",
+      "code": "class Parent {\n  hello() { return \"Parent\"; }\n}\nclass Child extends Parent {\n  hello() { return \"Child\"; }\n}\nconst c = new Child();\nconsole.log(c.hello());",
+      "question": "Что выведется?",
+      "options": [
+        "Parent",
+        "Child",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Child переопределил метод hello(). JavaScript сначала ищет метод в самом объекте (Child), и только если не находит — идёт вверх по цепочке прототипов. Нашёл в Child — вернул \"Child\"."
+    },
+    {
+      "type": "heading",
+      "content": "super.method() — вызов переопределённого метода"
+    },
+    {
+      "type": "text",
+      "content": "Если переопределил метод, но хочешь использовать и родительскую версию, вызови <code>super.method()</code>. Полезно для расширения поведения: добавить что-то своё к существующему, а не заменять полностью."
+    },
+    {
+      "type": "code",
+      "content": "class Logger {\n  log(msg) {\n    return `[LOG] ${msg}`;\n  }\n}\n\nclass TimestampLogger extends Logger {\n  log(msg) {\n    const base = super.log(msg);  // вызываем родительский log\n    return `${new Date().getFullYear()} ${base}`;  // добавляем год\n  }\n}\n\nconst l = new TimestampLogger();\nconsole.log(l.log(\"hello\"));  // 2026 [LOG] hello — расширили, не заменили"
+    },
+    {
+      "type": "predict",
+      "code": "class A {\n  greet() { return \"A\"; }\n}\nclass B extends A {\n  greet() { return \"B + \" + super.greet(); }\n}\nconst b = new B();\nconsole.log(b.greet());",
+      "question": "Что выведется?",
+      "options": [
+        "A",
+        "B",
+        "B + A",
+        "A + B"
+      ],
+      "answer": 2,
+      "explain": "super.greet() вызывает метод родителя (A) → \"A\". Дочерний добавляет \"B + \" → \"B + A\". Это частый паттерн расширения."
+    },
+    {
+      "type": "heading",
+      "content": "Цепочка наследования"
+    },
+    {
+      "type": "text",
+      "content": "Классы могут наследоваться цепочкой: A -> B -> C. C получает методы и от A, и от B. JavaScript ищет метод по цепочке снизу вверх: сначала в C, потом B, потом A. Если не нашёл — undefined."
+    },
+    {
+      "type": "code",
+      "content": "class A {\n  a() { return \"a\"; }\n}\nclass B extends A {\n  b() { return \"b\"; }\n}\nclass C extends B {\n  c() { return \"c\"; }\n}\n\nconst obj = new C();\nconsole.log(obj.a());  // \"a\" — нашёл в дедушке A\nconsole.log(obj.b());  // \"b\" — нашёл в папе B\nconsole.log(obj.c());  // \"c\" — в самом C\n\n// Все три метода доступны в C!"
+    },
+    {
+      "type": "heading",
+      "content": "Расширение встроенных классов"
+    },
+    {
+      "type": "text",
+      "content": "Можно наследоваться от Array, Map, Error и других встроенных классов. Это мощный способ создать свой тип с дополнительными методами. Например, NumberArray со методом sum()."
+    },
+    {
+      "type": "code",
+      "content": "// Расширяем встроенный Array\nclass NumberArray extends Array {\n  sum() {\n    return this.reduce((acc, n) => acc + n, 0);\n  }\n}\n\nconst nums = new NumberArray(1, 2, 3, 4);\nconsole.log(nums.length);  // 4 — все методы Array работают!\nconsole.log(nums.sum());   // 10 — наш метод\nconsole.log(nums.push(5)); // работает push из Array"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Не злоупотребляй наследованием.</b> Правило: используй extends только если связь 'ЯВЛЯЕТСЯ' (Dog IS-A Animal). Если Dog просто 'ИМЕЕТ' имя или еду — это композиция, а не наследование. Глубокие цепочки (A->B->C->D->E) делают код хрупким: изменение в A ломает E. Предпочитай композицию."
+    },
+    {
+      "type": "tip",
+      "content": "Всегда вызывай super() ПЕРВЫМ в constructor дочернего класса. Это правило не обсуждается — иначе this недоступен и будет ReferenceError. Если constructor дочернего класса просто вызывает super с теми же аргументами — constructor можно вообще не писать."
+    },
+    {
+      "type": "heading",
+      "content": "instanceof и наследование"
+    },
+    {
+      "type": "text",
+      "content": "Экземпляр дочернего класса является instanceof и дочернего, и родительского класса. Это удобно для проверки типов: если объект является Manager, он автоматически Employee. Иерархия наследуется."
+    },
+    {
+      "type": "code",
+      "content": "class Employee {}\nclass Manager extends Employee {}\n\nconst m = new Manager();\nconsole.log(m instanceof Manager);  // true\nconsole.log(m instanceof Employee); // true — Manager есть Employee\nconsole.log(m instanceof Object);   // true — все объекты наследуют Object"
+    },
+    {
+      "type": "heading",
+      "content": "Полиморфизм в действии"
+    },
+    {
+      "type": "text",
+      "content": "Полиморфизм позволяет писать универсальный код: функция принимает 'любой Animal' и вызывает .speak(). Каждый объект сам решает, как говорить. Это основа гибких систем: добавь новый класс Fish — и он заработает со старым кодом без изменений."
+    },
+    {
+      "type": "code",
+      "content": "class Animal {\n  speak() { return \"...\"; }\n}\nclass Dog extends Animal {\n  speak() { return \"Woof\"; }\n}\nclass Cat extends Animal {\n  speak() { return \"Meow\"; }\n}\nclass Fish extends Animal {\n  speak() { return \"Blub\"; }  // новый класс — старый код не меняем\n}\n\nfunction describe(animal) {\n  return `It says: ${animal.speak()}`;  // работает с ЛЮБЫМ Animal\n}\n\nconsole.log(describe(new Dog()));   // It says: Woof\nconsole.log(describe(new Fish()));  // It says: Blub"
+    },
+    {
+      "type": "note",
+      "content": "В JavaScript наследование прототипное: extends создаёт связь между прототипами классов. Под капотом Dog.prototype.__proto__ === Animal.prototype. Классы — это синтаксический сахар над прототипами."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай класс Animal с constructor(name). Унаследуй Dog, который вызывает super(name) и переопределяет speak() на name + ' barks!'. Создай new Dog(\"Rex\") и выведи speak() (ожидаемый вывод: Rex barks!)",
+      "starter": "class Animal {\n  constructor(name) { this.name = name; }\n  speak() { return this.name + \" sound\"; }\n}\nclass Dog extends Animal {\n  constructor(name) { super(name); }\n  speak() { return this.name + \" barks!\"; }\n}\n// const d = new Dog(\"Rex\");\n// console.log(d.speak());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Dog\\s+extends\\s+Animal",
+          "message": "Dog extends Animal"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "super",
+          "message": "Используй super() в дочернем классе"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Rex barks!",
+          "message": "Dog overrides speak()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Animal {\n  constructor(name) { this.name = name; }\n  speak() { return this.name + \" sound\"; }\n}\nclass Dog extends Animal {\n  constructor(name) { super(name); }\n  speak() { return this.name + \" barks!\"; }\n}\nconst d = new Dog(\"Rex\");\nconsole.log(d.speak());"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай класс Animal с constructor(name). Унаследуй Cat. Создай new Cat(\"Mittens\") и выведи .name (ожидаемый вывод: Mittens)",
+      "starter": "class Animal {\n  constructor(name) { this.name = name; }\n}\nclass Cat extends Animal {}\n// console.log(new Cat(\"Mittens\").name);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Cat\\s+extends\\s+Animal",
+          "message": "Cat extends Animal"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "Mittens",
+          "message": "Cat наследует name"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Animal {\n  constructor(name) { this.name = name; }\n}\nclass Cat extends Animal {}\nconsole.log(new Cat(\"Mittens\").name);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай класс Base с constructor (this.x = 1). Унаследуй Child, вызови super() и добавь this.y = 2. Создай экземпляр и выведи x и y (ожидаемый вывод: 1 2)",
+      "starter": "class Base {\n  constructor() { this.x = 1; }\n}\nclass Child extends Base {\n  constructor() {\n    super();\n    this.y = 2;\n  }\n}\n// const c = new Child();\n// console.log(c.x, c.y);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "super\\(\\)",
+          "message": "Вызови super()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1 2",
+          "message": "Child наследует x=1 и имеет y=2"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Base {\n  constructor() { this.x = 1; }\n}\nclass Child extends Base {\n  constructor() {\n    super();\n    this.y = 2;\n  }\n}\nconst c = new Child();\nconsole.log(c.x, c.y);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай класс Shape с area()=0. Square extends Shape с constructor(side) и area()=side*side. Выведи new Square(5).area() (ожидаемый вывод: 25)",
+      "starter": "class Shape {\n  area() { return 0; }\n}\nclass Square extends Shape {\n  constructor(side) { super(); this.side = side; }\n  area() { return this.side * this.side; }\n}\n// console.log(new Square(5).area());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bclass\\s+Square\\s+extends\\s+Shape",
+          "message": "Square extends Shape"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "25",
+          "message": "Square(5).area() = 25"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "class Shape {\n  area() { return 0; }\n}\nclass Square extends Shape {\n  constructor(s) { super(); this.s = s; }\n  area() { return this.s * this.s; }\n}\nconsole.log(new Square(5).area());"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай класс Parent с constructor (this.a = 1). Унаследуй Child, вызови super() и добавь this.b = 2. Создай экземпляр и выведи Object.keys(c).join(',') (ожидаемый вывод: a,b)",
+      "starter": "class Parent {\n  constructor() { this.a = 1; }\n}\nclass Child extends Parent {\n  constructor() {\n    super();\n    this.b = 2;\n  }\n}\n// const c = new Child();\n// console.log(Object.keys(c).join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "super\\(\\)",
+          "message": "Вызови super() в конструкторе"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "a,b",
+          "message": "keys: a, b"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class Parent {\n  constructor() { this.a = 1; }\n}\nclass Child extends Parent {\n  constructor() {\n    super();\n    this.b = 2;\n  }\n}\nconst c = new Child();\nconsole.log(Object.keys(c).join(\",\"));"
+    }
+  ],
+  "recap": [
+    "extends — наследование: дочерний получает всё от родительского.",
+    "super() в constructor — обязательно, вызывается ПЕРВЫМ.",
+    "super.method() — вызов родительской версии переопределённого метода.",
+    "Переопределение метода — дочерний класс объявляет метод с тем же именем.",
+    "Полиморфизм: один вызов, разное поведение для разных классов.",
+    "instanceof работает по цепочке: Manager instanceof Employee === true."
+  ],
+  "quiz": [
+    {
+      "q": "Что будет, если не вызвать super() в constructor дочернего класса?",
+      "options": [
+        "Работает нормально",
+        "ReferenceError при обращении к this",
+        "TypeError",
+        "Вернёт undefined"
+      ],
+      "answer": 1,
+      "explain": "this недоступен до super() — ReferenceError: Must call super constructor."
+    },
+    {
+      "q": "Что выведет метод, переопределённый в дочернем классе?",
+      "options": [
+        "Родительскую версию",
+        "Дочернюю версию",
+        "Обе",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "JS ищет метод снизу вверх — находит в дочернем, возвращает его."
+    },
+    {
+      "q": "Как вызвать родительскую версию метода?",
+      "options": [
+        "parent.method()",
+        "super.method()",
+        "this.method()",
+        "base.method()"
+      ],
+      "answer": 1,
+      "explain": "super.method() вызывает метод из родительского класса."
+    }
+  ]
+}

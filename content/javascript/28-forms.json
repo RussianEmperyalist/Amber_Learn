@@ -1,0 +1,328 @@
+{
+  "id": "javascript-28-forms",
+  "title": "Формы и валидация: паспортный контроль",
+  "goal": "Получать данные из форм, валидировать ввод, работать с input.value",
+  "prereq": [
+    "javascript-26-dom-basics",
+    "javascript-27-events"
+  ],
+  "duration": 16,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты в аэропорту. Паспортный офицер проверяет: паспорт настоящий, данные заполнены, фото совпадает, срок не истёк. <b>Валидация форм</b> — это паспортный контроль на сайте. Когда пользователь заполняет форму, ты проверяешь: не пустое ли поле, подходит ли email, совпадают ли пароли, не ввёл ли пользователь буквы вместо возраста. Если данные некорректны — показываешь ошибку. Если всё ок — отправляешь на сервер."
+    },
+    {
+      "type": "text",
+      "content": "<b>Форма</b> — это набор input-полей, select, textarea. Данные из формы читаются через <code>element.value</code>. Валидация — это набор правил: 'поле не пустое', 'email содержит @', 'пароль минимум 8 символов'. Если правило нарушено — показываем ошибку и не отправляем данные."
+    },
+    {
+      "type": "code",
+      "content": "// HTML: <input type=\"text\" id=\"name\" placeholder=\"Введите имя\">\nconst input = document.querySelector(\"#name\");\n\n// Читаем текущее значение:\nconsole.log(input.value);  // \"\" — пустое при загрузке\n\n// Значение обновляется при вводе:\ninput.addEventListener(\"input\", () => {\n  console.log(\"Пользователь ввёл:\", input.value);\n});"
+    },
+    {
+      "type": "heading",
+      "content": "input.value — чтение данных"
+    },
+    {
+      "type": "text",
+      "content": "Все input-элементы (text, email, number, password) имеют свойство <code>value</code> — строка с текущим вводом. <code>select</code> — выбранная опция. <code>textarea</code> — многострочный текст. value — всегда строка, даже если input type='number'."
+    },
+    {
+      "type": "code",
+      "content": "// Text input\nconst name = document.querySelector(\"#name\");\nconsole.log(name.value);  // \"Алиса\"\n\n// Number input — value ВСЁ ЕЩЁ строка!\nconst age = document.querySelector(\"#age\");\nconsole.log(typeof age.value);  // \"string\" — даже если ввёл 25\n\n// Чтобы получить число — приводим:\nconst ageNum = Number(age.value);  // 25\n\n// Select\nconst select = document.querySelector(\"#country\");\nconsole.log(select.value);  // \"RU\"\n\n// Checkbox\nconst agree = document.querySelector(\"#agree\");\nconsole.log(agree.checked);  // true/false"
+    },
+    {
+      "type": "heading",
+      "content": "Валидация — проверка данных"
+    },
+    {
+      "type": "text",
+      "content": "Валидация — это проверка данных по правилам. Создаёшь функцию, которая принимает значение и возвращает true/false или сообщение об ошибке. Функция валидации — это правило, которое гарантирует: в систему попадут только корректные данные."
+    },
+    {
+      "type": "code",
+      "content": "// Функции валидации\nfunction isEmpty(str) {\n  return str.trim().length === 0;  // проверка на пустоту\n}\n\nfunction isEmail(str) {\n  return /^[\\w.-]+@[\\w.-]+\\.[a-z]+$/.test(str);  // проверка email\n}\n\nfunction isMinLength(str, min) {\n  return str.trim().length >= min;\n}\n\n// Использование:\nconst name = document.querySelector(\"#name\").value;\nif (isEmpty(name)) {\n  console.log(\"Имя не может быть пустым\");\n}\nif (!isEmail(document.querySelector(\"#email\").value)) {\n  console.log(\"Некорректный email\");\n}"
+    },
+    {
+      "type": "predict",
+      "code": "const age = { value: \"25\" };\nconst numAge = age.value + 5;\nconsole.log(numAge);",
+      "question": "Что выведется?",
+      "options": [
+        "30",
+        "\"255\"",
+        "undefined",
+        "NaN"
+      ],
+      "answer": 1,
+      "explain": "value ВСЕГДА строка. '25' + 5 = '255' — конкатенация строк! Нужно привести к числу: Number(age.value) + 5 = 30."
+    },
+    {
+      "type": "predict",
+      "code": "const inp = { value: \"\" };\nif (!inp.value.trim()) {\n  console.log(\"Пустое\");\n} else {\n  console.log(\"Не пусто\");\n}",
+      "question": "Что выведется?",
+      "options": [
+        "\"Пустое\"",
+        "\"Не пусто\"",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 0,
+      "explain": "isEmpty(''.trim()) → ''.length === 0 → true → 'Пустое'. trim() убирает пробелы, но пустая строка остаётся пустой."
+    },
+    {
+      "type": "heading",
+      "content": "Сообщения об ошибках"
+    },
+    {
+      "type": "text",
+      "content": "Когда валидация не пройдена, показываешь сообщение об ошибке рядом с полем. Можно создать элемент span с классом 'error' и вставить туда текст ошибки. Для сброса — удаляешь или скрываешь элемент."
+    },
+    {
+      "type": "code",
+      "content": "const input = document.querySelector(\"#email\");\nconst error = document.createElement(\"span\");\nerror.className = \"error\";\nerror.style.color = \"red\";\n\nfunction validateEmail(email) {\n  if (!email.includes(\"@\")) {\n    error.textContent = \"Email должен содержать @\";\n    input.parentElement.appendChild(error);  // показываем ошибку\n    return false;\n  }\n  // Если всё ок — скрываем ошибку\n  error.remove();\n  return true;\n}\n\ninput.addEventListener(\"input\", () => {\n  validateEmail(input.value);\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Валидация всей формы"
+    },
+    {
+      "type": "text",
+      "content": "Перед отправкой формы проверяешь ВСЕ поля. Если хотя бы одно не прошло — отменяешь отправку. В обработчике submit вызываешь все проверки и preventDefault при ошибке."
+    },
+    {
+      "type": "code",
+      "content": "const form = document.querySelector(\"form\");\n\nform.addEventListener(\"submit\", (event) => {\n  event.preventDefault();  // не перезагружаем\n\n  const name = document.querySelector(\"#name\").value;\n  const email = document.querySelector(\"#email\").value;\n  const errors = [];\n\n  if (name.trim() === \"\") errors.push(\"Введите имя\");\n  if (!email.includes(\"@\")) errors.push(\"Введите email\");\n\n  if (errors.length > 0) {\n    console.log(errors.join(\", \"));  // показать ошибки\n    return;  // не отправляем\n  }\n\n  console.log(\"Форма отправлена!\");  // данные корректны\n});"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Забыл очистить поле после отправки!</b> Когда форма отправлена и данные прошли валидацию, нужно очистить input.value = '' — иначе в форме останется старый ввод. Также не забывай привести тип: input.value — строка, а для вычислений нужно число. Частая ошибка: сложение строк вместо чисел."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: не очищаем и не приводим тип\nform.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  const num = document.querySelector(\"#number\").value;  // \"5\"\n  const result = num + num;  // \"55\" — строки!\n  console.log(result);  // \"55\" вместо 10\n});\n\n// ПРАВИЛЬНО: приводим тип и очищаем\nform.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  const num = Number(document.querySelector(\"#number\").value);\n  const result = num + num;  // 10\n  console.log(result);\n  document.querySelector(\"#number\").value = \"\";  // очистка\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Валидация в реальном времени"
+    },
+    {
+      "type": "text",
+      "content": "Можно валидировать при каждом вводе (событие input) или только при отправке (событие submit). Валидация в реальном времени даёт мгновенную обратную связь — пользователь видит ошибку сразу. Но это может раздражать. Хороший баланс: валидация при потере фокуса (blur) и при отправке."
+    },
+    {
+      "type": "code",
+      "content": "const input = document.querySelector(\"#username\");\n\n// Валидация при потере фокуса\ninput.addEventListener(\"blur\", () => {\n  if (input.value.trim().length < 3) {\n    showError(\"Имя минимум 3 символа\");\n  }\n});\n\n// Валидация при отправке формы\nform.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  if (input.value.trim().length < 3) {\n    showError(\"Имя минимум 3 символа\");\n    return;\n  }\n  // отправляем...\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Работа с select и textarea"
+    },
+    {
+      "type": "text",
+      "content": "Select и textarea работают так же, как input — через value. Select.value — выбранный option. Textarea.value — многострочный текст. Можно динамически добавлять/удалять опции через add/remove."
+    },
+    {
+      "type": "code",
+      "content": "// Select\nconst select = document.querySelector(\"#country\");\nconsole.log(select.value);  // \"RU\"\n\n// Добавляем опцию\nconst opt = document.createElement(\"option\");\nopt.value = \"US\";\nopt.textContent = \"United States\";\nselect.add(opt);\n\n// Textarea\nconst textarea = document.querySelector(\"#comment\");\nconsole.log(textarea.value);  // многострочный текст\n\n// Читаем строки\nconst lines = textarea.value.split(\"\\n\");\nconsole.log(lines.length);  // количество строк"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>required</code> и <code>type=\"email\"</code> в HTML для базовой валидации — браузер сам проверит пустые поля и формат email. Но это НЕ заменяет JavaScript-валидацию: HTML-атрибуты можно обойти, а кастомные сообщения не покажешь."
+    },
+    {
+      "type": "note",
+      "content": "Валидация работает на двух уровнях: клиентская (JavaScript) — для быстрого отклика, и серверная — для безопасности. Никогда не доверяй клиентской валидации — злоумышленник может её обойти. Сервер должен проверять ВСЕ данные."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай input с type='email' и value='test@example.com'. Выведи input.value (ожидаемый вывод: test@example.com)",
+      "starter": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.name = \"email\";\nform.appendChild(input);\n// input.value = \"test@example.com\";\n// console.log(input.value);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "document\\.createElement",
+          "message": "Используй createElement()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.value",
+          "message": "Используй .value"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "test@example.com",
+          "message": "input.value = \"test@example.com\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.name = \"email\";\nform.appendChild(input);\ninput.value = \"test@example.com\";\nconsole.log(input.value);"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай input с type='checkbox'. Установи checked = true и выведи input.checked (ожидаемый вывод: true)",
+      "starter": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"checkbox\";\nform.appendChild(input);\n// input.checked = true;\n// console.log(input.checked);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.checked",
+          "message": "Используй .checked"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "input.checked = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"checkbox\";\ninput.checked = true;\nform.appendChild(input);\nconsole.log(input.checked);"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай input с value='hello'. Установи disabled = true и выведи input.disabled (ожидаемый вывод: true)",
+      "starter": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"text\";\ninput.value = \"hello\";\nform.appendChild(input);\n// input.disabled = true;\n// console.log(input.disabled);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.disabled",
+          "message": "Используй .disabled"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "true",
+          "message": "input.disabled = true"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"text\";\ninput.value = \"hello\";\ninput.disabled = true;\nform.appendChild(input);\nconsole.log(input.disabled);"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "В форме есть input type=email со значением 'bad' (без @). При submit проверяй наличие @ через includes() и выводи 'invalid'. Вызови submit и выведи результат (ожидаемый вывод: invalid)",
+      "starter": "// const form = document.createElement(\"form\");\n// document.body.appendChild(form);\n// const input = document.createElement(\"input\");\n// input.type = \"email\";\n// input.value = \"bad\";\n// form.addEventListener(\"submit\", (e) => {\n//   e.preventDefault();\n//   if (!input.value.includes(\"@\")) {\n//     console.log(\"invalid\");\n//   }\n// });\n// form.dispatchEvent(new Event(\"submit\", { bubbles: true, cancelable: true }));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.preventDefault\\(\\)",
+          "message": "Используй preventDefault()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "includes\\(\"@\"\\)",
+          "message": "Проверка @ в email"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "invalid",
+          "message": "email без @ → invalid"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"email\";\ninput.value = \"bad\";\nform.addEventListener(\"submit\", (e) => {\n  e.preventDefault();\n  if (!input.value.includes(\"@\")) {\n    console.log(\"invalid\");\n  }\n});\nform.dispatchEvent(new Event(\"submit\", { cancelable: true, bubbles: true }));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай input с type='password' и value='secret123'. Выведи input.type и input.value (ожидаемый вывод: password secret123)",
+      "starter": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"password\";\ninput.value = \"secret123\";\nform.appendChild(input);\n// console.log(input.type, input.value);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "input\\.type",
+          "message": "Используй input.type"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "input\\.value",
+          "message": "Используй input.value"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "password secret123",
+          "message": "input.type=\"password\", input.value=\"secret123\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const form = document.createElement(\"form\");\ndocument.body.appendChild(form);\nconst input = document.createElement(\"input\");\ninput.type = \"password\";\ninput.value = \"secret123\";\nform.appendChild(input);\nconsole.log(input.type, input.value);"
+    }
+  ],
+  "recap": [
+    "input.value — текущее значение поля (всегда строка!).",
+    "Number(input.value) — приведение к числу, иначе строки сложатся.",
+    "Валидация — проверка данных: isEmpty, isEmail, isMinLength.",
+    "Сообщения об ошибках — создаём span и вставляем рядом с полем.",
+    "Проверяй ВСЕ поля перед отправкой.",
+    "Не забывай очищать input.value после отправки."
+  ],
+  "quiz": [
+    {
+      "q": "Какой тип у input.value?",
+      "options": [
+        "number",
+        "string",
+        "boolean",
+        "зависит от type"
+      ],
+      "answer": 1,
+      "explain": "value всегда строка. Для чисел нужно Number(value)."
+    },
+    {
+      "q": "Что делает preventDefault в submit?",
+      "options": [
+        "Удаляет форму",
+        "Отменяет перезагрузку",
+        "Очищает поля",
+        "Проверяет поля"
+      ],
+      "answer": 1,
+      "explain": "preventDefault() отменяет стандартное поведение — перезагрузку страницы."
+    },
+    {
+      "q": "Что будет: '5' + 5?",
+      "options": [
+        "10",
+        "\"55\"",
+        "NaN",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "Строка + число = конкатенация: '5' + 5 = '55'. Приводи к числу: Number('5') + 5 = 10."
+    }
+  ]
+}

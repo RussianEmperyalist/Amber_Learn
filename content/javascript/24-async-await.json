@@ -1,0 +1,365 @@
+{
+  "id": "javascript-24-async-await",
+  "title": "Async/await: промисы без then",
+  "goal": "Использовать async/await для работы с промисами, понимать try/catch в асинхронном коде",
+  "prereq": [
+    "javascript-23-promises"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "async/await — это <b>магия</b>, которая заставляет асинхронный код выглядеть как обычный, синхронный. Без него ты пишешь <code>.then().then().then()</code> — длинную цепочку. С ним пишешь код <b>сверху вниз</b>, как будто ждёшь каждую операцию. Но на самом деле JavaScript <b>не блокируется</b> — он просто выглядит так, будто ждёт."
+    },
+    {
+      "type": "text",
+      "content": "<b>async</b> — это ключевое слово для функций. <code>async function()</code> возвращает промис. <b>await</b> — ключевое слово для ожидания. <code>await</code> останавливает выполнение функции, пока промис не завершится. Но НЕ блокирует другой код — он останавливает ТОЛЬКО эту функцию."
+    },
+    {
+      "type": "code",
+      "content": "// async функция всегда возвращает промис\nasync function greet() {\n  return \"Hello!\";  // автоматически оборачивается в Promise.resolve(\"Hello!\")\n}\n\n// Вызов: возвращает промис\nconst result = greet();\nconsole.log(result);  // Promise { \"Hello!\" }\n\n// Чтобы получить значение — ждём в другой async\nasync function main() {\n  const val = await greet();  // ждём промис → получаем \"Hello!\"\n  console.log(val);  // Hello!\n}\nmain();"
+    },
+    {
+      "type": "heading",
+      "content": "async — ключевое слово функции"
+    },
+    {
+      "type": "text",
+      "content": "<code>async</code> перед функцией означает: эта функция асинхронна и возвращает промис. Даже если return значение — оно автоматически оборачивается в Promise.resolve(). Это значит: асинхронный код может выглядеть синхронным снаружи."
+    },
+    {
+      "type": "code",
+      "content": "async function fetchData() {\n  return { users: 42 };  // автоматически: Promise.resolve({ users: 42 })\n}\n\n// Вызов: получаем промис\nconst promise = fetchData();\npromise.then(data => console.log(data.users));  // 42"
+    },
+    {
+      "type": "heading",
+      "content": "await — пауза для промиса"
+    },
+    {
+      "type": "text",
+      "content": "<code>await</code> — «подожди, пока промис выполнится, и верни значение». Это ключевое слово можно использовать ТОЛЬКО внутри async-функции. await делает код читаемым: вместо .then() цепочки пишешь код сверху вниз."
+    },
+    {
+      "type": "code",
+      "content": "async function load() {\n  const data = await Promise.resolve({ name: \"Alice\" });\n  console.log(data.name);  // Alice — значение разворачено!\n\n  // Без await пришлось бы:\n  // Promise.resolve({ name: \"Alice\" }).then(data => { ... })\n}\nload();"
+    },
+    {
+      "type": "heading",
+      "content": "try/catch в async-функциях"
+    },
+    {
+      "type": "text",
+      "content": "В async-функциях ошибки промисов ловятся через обычный try/catch — не через .catch(). Это огромный плюс: <b>синхронный и асинхронный код обрабатывается одинаково</b>. Если await промис отклонён — выполнение прыгает в catch."
+    },
+    {
+      "type": "code",
+      "content": "async function loadUser(id) {\n  try {\n    const user = await fetchUser(id);  // может отклониться\n    console.log(user.name);             // выполнится только если ok\n  } catch (error) {\n    console.error(\"Не удалось загрузить:\", error.message);  // обработаем\n  }\n  console.log(\"Конец функции\");  // выполнится всегда\n}"
+    },
+    {
+      "type": "predict",
+      "code": "async function test() {\n  try {\n    await Promise.reject(\"Error!\");\n    console.log(\"After await\");\n  } catch (e) {\n    console.log(\"Catch:\", e);\n  }\n  console.log(\"End\");\n}\ntest();",
+      "question": "Что выведется?",
+      "options": [
+        "\"After await\" и \"End\"",
+        "\"Catch: Error!\" и \"End\"",
+        "\"Catch: Error!\"",
+        "Ошибка выполнения"
+      ],
+      "answer": 1,
+      "explain": "await промис отклонён → прыжок в catch → выводится 'Catch: Error!' → выполнение продолжается → 'End'. 'After await' не выполнится — код после reject не запускается."
+    },
+    {
+      "type": "heading",
+      "content": "await без async = SyntaxError"
+    },
+    {
+      "type": "text",
+      "content": "await можно использовать только внутри async-функции. Попытка использовать await снаружи вызовет SyntaxError. В модулях (ESM) можно использовать top-level await (await вне функции) — это новый стандарт."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: await вне async\n// await Promise.resolve(\"ok\");  // SyntaxError!\n\n// ПРАВИЛЬНО: внутри async\nasync function main() {\n  const val = await Promise.resolve(\"ok\");\n  console.log(val);\n}\n\n// ИЛИ: top-level await в ESM\n// const val = await Promise.resolve(\"ok\");  // работает в .mjs"
+    },
+    {
+      "type": "heading",
+      "content": "Забыл await — Promise вместо данных"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Забыл await — получил Promise вместо данных!</b> Это самая частая ошибка новичков. Без await функция возвращает Promise, а не значение. Попытка обратиться к свойству промиса вернёт undefined. <code>const data = fetchData()</code> — это промис. <code>const data = await fetchData()</code> — это данные. Всегда проверяй: нужен ли await?"
+    },
+    {
+      "type": "code",
+      "content": "async function fetchData() {\n  return { name: \"Alice\" };\n}\n\n// БАГ: забыл await\nasync function wrong() {\n  const data = fetchData();  // это Promise!\n  console.log(data.name);  // undefined — у промиса нет name!\n}\n\n// ПРАВИЛЬНО: с await\nasync function right() {\n  const data = await fetchData();  // это объект\n  console.log(data.name);  // Alice\n}"
+    },
+    {
+      "type": "predict",
+      "code": "async function getNumber() {\n  return 42;\n}\nasync function main() {\n  const n = getNumber();\n  console.log(n * 2);\n}\nmain();",
+      "question": "Что выведется?",
+      "options": [
+        "84",
+        "undefined",
+        "NaN",
+        "Promise { 42 } * 2"
+      ],
+      "answer": 2,
+      "explain": "getNumber() возвращает Promise. Без await n — это Promise. Promise * 2 = NaN. Частая ошибка: забыл await!"
+    },
+    {
+      "type": "heading",
+      "content": "Параллельный await"
+    },
+    {
+      "type": "text",
+      "content": "Если несколько await не зависят друг от друга — <b>не жди последовательно!</b> Запусти их параллельно через Promise.all. Сериальный await = медленнее: 3 запроса по 1 секунде = 3 секунды. Параллельный = 1 секунда."
+    },
+    {
+      "type": "code",
+      "content": "// СЕРИАЛЬНО: ждём по очереди (медленно)\nasync function slow() {\n  const a = await fetchA();  // 1 сек\n  const b = await fetchB();  // 1 сек\n  const c = await fetchC();  // 1 сек\n  // Итого: 3 секунды\n}\n\n// ПАРАЛЛЕЛЬНО: запускаем вместе (быстро)\nasync function fast() {\n  const [a, b, c] = await Promise.all([\n    fetchA(),\n    fetchB(),\n    fetchC()\n  ]);\n  // Итого: 1 секунда — все три запроса одновременно!"
+    },
+    {
+      "type": "heading",
+      "content": "async функции без await"
+    },
+    {
+      "type": "text",
+      "content": "Функция может быть <code>async</code> без <code>await</code>. Это означает: она возвращает промис и может использовать await в будущем. Возвращаемое значение всё равно обернётся в промис."
+    },
+    {
+      "type": "code",
+      "content": "async function getData() {\n  // Нет await — но всё равно возвращает Promise\n  return { data: \"ready\" };\n}\n\n// getData() === Promise.resolve({ data: \"ready\" })\nconsole.log(typeof getData());  // \"object\" — это промис"
+    },
+    {
+      "type": "heading",
+      "content": "await в циклах"
+    },
+    {
+      "type": "text",
+      "content": "await внутри цикла for...of — классический паттерн обработки данных. Каждый итерация ждёт завершения промиса перед следующей. Альтернатива: Promise.all для параллельного выполнения."
+    },
+    {
+      "type": "code",
+      "content": "const ids = [1, 2, 3];\n\n// Последовательно: ждём каждый\nfor (const id of ids) {\n  const user = await fetchUser(id);\n  console.log(user.name);\n}\n// Итого: 3 секунды (3 запроса по 1 сек)\n\n// Параллельно:\nconst users = await Promise.all(ids.map(id => fetchUser(id)));\nusers.forEach(u => console.log(u.name));\n// Итого: 1 секунда"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>async/await</code> вместо .then() цепочек — код читается сверху вниз. Но не забывай: await останавливает ТОЛЬКО текущую async-функцию. Окружающий код продолжает работать. Это не блокирующий sleep."
+    },
+    {
+      "type": "heading",
+      "content": "Обработка ошибок: try/catch vs .catch()"
+    },
+    {
+      "type": "text",
+      "content": "В async-функциях try/catch — это стандартный способ обработки ошибок. Он работает для любого await. .catch() — для промисов вне async-функции. Используй try/catch внутри async, .catch() снаружи."
+    },
+    {
+      "type": "code",
+      "content": "// Внутри async — try/catch\nasync function load() {\n  try {\n    const user = await fetchUser(1);\n    console.log(user.name);\n  } catch (err) {\n    console.error(\"Ошибка:\", err.message);\n  }\n}\n\n// Снаружи async — .catch()\nfetchUser(1)\n  .then(user => console.log(user.name))\n  .catch(err => console.error(\"Ошибка:\", err.message));"
+    },
+    {
+      "type": "note",
+      "content": "async/await — это 'синтаксический сахар' над промисами. Под капотом всё тот же Event Loop, те же промисы. async/await просто делает код читаемым."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай async функцию run, которая возвращает 'done'. Вызови run() и выведи результат через .then() (ожидаемый вывод: done)",
+      "starter": "async function run() {\n  return \"done\";\n}\n// run().then(v => console.log(v));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\basync\\b",
+          "message": "Используй async"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.then\\(",
+          "message": "Используй .then()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "done",
+          "message": "async function returns \"done\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "async function run() {\n  return \"done\";\n}\nrun().then(v => console.log(v));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай async функцию run с await Promise.resolve(42). Выведи результат (ожидаемый вывод: 42)",
+      "starter": "async function run() {\n  const val = await Promise.resolve(42);\n  // console.log(val);\n}\nrun();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\b",
+          "message": "Используй await"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "Promise\\.resolve",
+          "message": "Используй Promise.resolve()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "42",
+          "message": "await Promise.resolve(42)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "async function run() {\n  const val = await Promise.resolve(42);\n  console.log(val);\n}\nrun();"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай async функцию с try/catch. В try await'ни Promise.reject('err'). В catch выведи ошибку (ожидаемый вывод: err)",
+      "starter": "async function run() {\n  try {\n    // await Promise.reject(\"err\");\n  } catch (e) {\n    // console.log(e);\n  }\n}\nrun();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\btry\\b",
+          "message": "Используй try/catch"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\b",
+          "message": "Используй await"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "err",
+          "message": "catch поймал \"err\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "async function run() {\n  try {\n    await Promise.reject(\"err\");\n  } catch (e) {\n    console.log(e);\n  }\n}\nrun();"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай async функцию delay с await new Promise(r => setTimeout(r, 0)). После await выведи 'done' (ожидаемый вывод: done)",
+      "starter": "async function delay() {\n  await new Promise(r => setTimeout(r, 0));\n  // console.log(\"done\");\n}\ndelay();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "setTimeout",
+          "message": "Используй setTimeout"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\b",
+          "message": "Используй await"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "done",
+          "message": "await setTimeout → \"done\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "async function delay() {\n  await new Promise(r => setTimeout(r, 0));\n  console.log(\"done\");\n}\ndelay();"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай async функцию run. Await'ни Promise.all с двумя промисами (resolve(1), resolve(2)). Выведи сумму (ожидаемый вывод: 3)",
+      "starter": "async function run() {\n  const [a, b] = await Promise.all([Promise.resolve(1), Promise.resolve(2)]);\n  // console.log(a + b);\n}\nrun();\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Promise\\.all",
+          "message": "Используй Promise.all()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bawait\\b",
+          "message": "Используй await"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "await Promise.all([1,2]) → 3"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "async function run() {\n  const [a, b] = await Promise.all([Promise.resolve(1), Promise.resolve(2)]);\n  console.log(a + b);\n}\nrun();"
+    }
+  ],
+  "recap": [
+    "async — ключевое слово, функция возвращает промис.",
+    "await — пауза для промиса, работает только внутри async.",
+    "try/catch внутри async ловит ошибки промисов.",
+    "Забыл await — получил Promise вместо данных.",
+    "await не блокирует — останавливает только текущую async-функцию.",
+    "Promise.all + await — параллельное выполнение."
+  ],
+  "quiz": [
+    {
+      "q": "Что возвращает async функция без await?",
+      "options": [
+        "Значение",
+        "undefined",
+        "Promise",
+        "null"
+      ],
+      "answer": 2,
+      "explain": "async функция всегда возвращает Promise, даже без await."
+    },
+    {
+      "q": "Что будет без await? const n = Promise.resolve(5);",
+      "options": [
+        "n === 5",
+        "n === Promise",
+        "n === undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "Без await n — это сам промис. n === Promise.resolve(5)."
+    },
+    {
+      "q": "Где можно использовать await?",
+      "options": [
+        "Везде",
+        "Только в async-функции",
+        "Только в .then()",
+        "В console.log"
+      ],
+      "answer": 1,
+      "explain": "await доступен только внутри async-функции (или top-level await в ESM)."
+    }
+  ]
+}

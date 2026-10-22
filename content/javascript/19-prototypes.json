@@ -1,0 +1,328 @@
+{
+  "id": "javascript-19-prototypes",
+  "title": "Прототипы: генетика объектов",
+  "goal": "Понять цепочку прототипов, Object.create(), Object.getPrototypeOf, делегирование",
+  "prereq": [
+    "javascript-16-classes"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Ты унаследовал глаза мамы, а характер папы. Ты не <b>создавал</b> эти черты — они унаследованы. В JavaScript объект работает точно так же: если ты обращаешься к свойству, которого нет в самом объекте, JavaScript <b>поднимается вверх по цепочке прототипов</b> и ищет свойство у 'предков'. Это <b>делегирование</b>: объект делегирует поиск свойств прототипу."
+    },
+    {
+      "type": "text",
+      "content": "<b>Прототипы</b> — основа ООП в JavaScript. Когда ты создаёшь объект, у него есть внутренняя ссылка <code>[[Prototype]]</code> (видимая как <code>__proto__</code>) на другой объект. Если ты обращаешься к <code>obj.prop</code> и свойство не найдено в obj, JS ищет в obj.__proto__, потом в obj.__proto__.__proto__ и т.д. до Object.prototype. Это <b>цепочка прототипов</b>."
+    },
+    {
+      "type": "code",
+      "content": "// Простой объект с прототипом Object.prototype\nconst obj = { name: \"Alice\" };\n\n// obj.__proto__ = Object.prototype (скрыто)\nconsole.log(obj.name);  // \"Alice\" — нашёл в самом obj\n\n// name нет — ищем в прототипе:\nconsole.log(obj.toString());  // \"[object Object]\" — из Object.prototype\nconsole.log(obj.hasOwnProperty); // [Function] — из Object.prototype\n\n// obj.__proto__.__proto__ = null — конец цепочки"
+    },
+    {
+      "type": "heading",
+      "content": "Object.create() — создание с прототипом"
+    },
+    {
+      "type": "text",
+      "content": "<code>Object.create(proto)</code> создаёт новый объект, у которого proto становится <code>__proto__</code>. Это <b>чистое делегирование</b>: объект пустой, все свойства — у прототипа. Полезно для создания объектов без Object.prototype (чистый словарь) или с произвольным прототипом."
+    },
+    {
+      "type": "code",
+      "content": "// Прототип с методами\nconst animal = {\n  speak() {\n    return \"...\";\n  }\n};\n\n// Создаём объект, делегирующий animal\nconst dog = Object.create(animal);\nconsole.log(dog.speak());  // \"...\" — делегирование!\nconsole.log(dog.hasOwnProperty(\"speak\"));  // false — speak не в dog\n\n// dog может иметь свои свойства:\ndog.name = \"Rex\";\nconsole.log(dog.name);  // \"Rex\" — свойство в самом dog\nconsole.log(dog.speak());  // \"...\" — делегирование в animal"
+    },
+    {
+      "type": "predict",
+      "code": "const proto = { greet() { return \"Hello\"; } };\nconst obj = Object.create(proto);\nobj.greet = \"Hi\";\nconsole.log(obj.greet);",
+      "question": "Что выведется?",
+      "options": [
+        "\"Hello\"",
+        "\"Hi\"",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "obj.greet = \"Hi\" создаёт собственное свойство greet в obj. При чтении JS сначала ищет в самом obj — нашёл \"Hi\" и возвращает его. Делегирование не срабатывает, потому что свойство найдено до прототипа."
+    },
+    {
+      "type": "heading",
+      "content": "Цепочка прототипов"
+    },
+    {
+      "type": "text",
+      "content": "Каждый объект имеет прототип. Прототип — тоже объект, у него тоже есть прототип. Цепочка заканчивается на <code>null</code>. Когда JS ищет свойство, он идёт по цепочке: obj → obj.__proto__ → obj.__proto__.__proto__ → ... → null. Первое найденное свойство побеждает."
+    },
+    {
+      "type": "code",
+      "content": "const proto = {\n  a() { return \"a\"; }\n};\n\nconst child = Object.create(proto);\nchild.b = \"b\";\n\n// Цепочка: child -> proto -> Object.prototype -> null\nconsole.log(child.a());  // \"a\" — из proto\nconsole.log(child.b);    // \"b\" — в самом child\nconsole.log(child.toString()); // [Function] — из Object.prototype\nconsole.log(child.toString === proto.toString);  // false — toString из Object.prototype"
+    },
+    {
+      "type": "heading",
+      "content": "__proto__ и Object.getPrototypeOf()"
+    },
+    {
+      "type": "text",
+      "content": "<code>obj.__proto__</code> — доступ к прототипу (не рекомендуется, но работает). <code>Object.getPrototypeOf(obj)</code> — стандартный способ. Оба возвращают один и тот же объект. Изменение прототипа через __proto__ работает, но __proto__ считается устаревшим — используй Object.getPrototypeOf."
+    },
+    {
+      "type": "code",
+      "content": "const parent = { x: 1 };\nconst child = Object.create(parent);\n\nconsole.log(child.__proto__ === parent);  // true\nconsole.log(Object.getPrototypeOf(child) === parent);  // true\n\n// Изменяем прототип\nconst newProto = { y: 2 };\nchild.__proto__ = newProto;  // не рекомендуется\nconsole.log(child.y);         // 2\nconsole.log(child.x);         // undefined — parent больше не в цепочке"
+    },
+    {
+      "type": "heading",
+      "content": "Классы и прототипы"
+    },
+    {
+      "type": "text",
+      "content": "Под капотом <code>class</code> работает через прототипы. <code>extends</code> связывает прототипы классов. <code>new</code> устанавливает <code>__proto__</code> экземпляра на <code>prototype</code> класса. Классы — это синтаксический сахар над прототипами, но понимание прототипов помогает понимать что происходит на самом деле."
+    },
+    {
+      "type": "code",
+      "content": "class Animal {\n  speak() { return \"...\"; }\n}\nconst dog = new Animal();\n\n// dog.__proto__ === Animal.prototype — true!\nconsole.log(Object.getPrototypeOf(dog) === Animal.prototype);  // true\n\n// Метод speak() лежит на Animal.prototype\nconsole.log(dog.speak());  // \"...\" — ищем в dog → нет → в Animal.prototype → нашёл!"
+    },
+    {
+      "type": "heading",
+      "content": "Object.prototype — конец цепочки"
+    },
+    {
+      "type": "text",
+      "content": "Все объекты в JS наследуют от Object.prototype. Вот почему у любого объекта есть <code>toString()</code>, <code>hasOwnProperty()</code>, <code>valueOf()</code>. Это методы Object.prototype, доступные всем объектам через цепочку прототипов."
+    },
+    {
+      "type": "code",
+      "content": "const arr = [1, 2, 3];\nconst obj = { name: \"Alice\" };\n\n// arr.__proto__ = Array.prototype\n// Array.prototype.__proto__ = Object.prototype\nconsole.log(arr.toString());  // \"1,2,3\" — из Array.prototype\nconsole.log(arr.hasOwnProperty(\"name\")); // false — из Object.prototype\n\n// obj.__proto__ = Object.prototype\nconsole.log(obj.toString());  // \"[object Object]\" — из Object.prototype\nconsole.log(obj.hasOwnProperty(\"name\")); // true — из Object.prototype"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Не изменяй встроенные прототипы!</b> <code>Array.prototype.myMethod = function() {...}</code> — это ломает другие библиотеки. Если твоя функция конфликтует с новой стандартной (например, Array.prototype.find уже есть) — весь код упадёт. Также for...in переберёт твоё свойство на всех массивах. Если нужно расширить — используй Object.create или композицию, а не мутацию встроенных прототипов."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: мутация встроенного прототипа\n// Array.prototype.find = function(f) { ... }  // переопределил стандартную!\n\n// Правильно — расширяем через Object.create:\nconst proto = {\n  sum() {\n    return this.reduce((a, b) => a + b, 0);\n  }\n};\nconst nums = Object.create(proto);\nnums.push(1, 2, 3);\nconsole.log(nums.sum());  // 6\n\n// nums.__proto__ = proto (не Array.prototype!)\n// Все стандартные методы Array тоже доступны через прототипную цепочку\n// но это не ломает другие библиотеки"
+    },
+    {
+      "type": "predict",
+      "code": "const proto = { a: 1 };\nconst child = Object.create(proto);\nchild.a = 2;\nchild.b = 3;\ndelete child.a;\nconsole.log(child.a);",
+      "question": "Что выведется?",
+      "options": [
+        "2",
+        "1",
+        "undefined",
+        "Ошибка"
+      ],
+      "answer": 1,
+      "explain": "delete child.a удаляет свойство из child. Теперь при поиске JS идёт в proto и находит a: 1. Это и есть делегирование — свойство нашлось в прототипе!"
+    },
+    {
+      "type": "heading",
+      "content": "hasOwnProperty — проверка собственного свойства"
+    },
+    {
+      "type": "text",
+      "content": "<code>hasOwnProperty(key)</code> проверяет, есть ли свойство в САМОМ объекте, а не в прототипе. Это отличает собственные свойства от унаследованных. for...in перебирает ВСЕ свойства (включая прототип), а for...of — только собственные."
+    },
+    {
+      "type": "code",
+      "content": "const proto = { inherited: true };\nconst obj = Object.create(proto);\nobj.own = true;\n\nconsole.log(obj.hasOwnProperty(\"own\"));         // true — своё\nconsole.log(obj.hasOwnProperty(\"inherited\"));   // false — из прототипа\nconsole.log(\"inherited\" in obj);                 // true — в цепочке\nconsole.log(\"own\" in obj);                       // true — в самом obj"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>Object.create(null)</code> для создания 'чистого словаря' без Object.prototype. Это самые быстрые объекты для хранения ключ-значение: нет цепочки прототипов, меньше памяти, быстрее поиск. Но у них нет toString(), hasOwnProperty() — нужно вызывать через Object."
+    },
+    {
+      "type": "code",
+      "content": "// Чистый словарь без прототипа\nconst dict = Object.create(null);\ndict.name = \"Alice\";\ndict.age = 25;\n\nconsole.log(dict.name);  // \"Alice\"\n// dict.toString();  // Ошибка! Нет toString на null-прототипе\n// Object.prototype.toString.call(dict); // надо так\n\n// Нет цепочки прототипов — быстрее\n// Нет встроенных свойств — чище"
+    },
+    {
+      "type": "heading",
+      "content": "Прототипы vs классы: что выбрать?"
+    },
+    {
+      "type": "text",
+      "content": "Классы — это синтаксический сахар над прототипами. Они удобны для структур, наследования, нового кода. Прототипы — это фундамент: <code>Object.create()</code> даёт более гибкое делегирование без иерархии классов. Для большинства задач классы достаточно, но прототипы полезны для mixins, декораторов и утилит."
+    },
+    {
+      "type": "code",
+      "content": "// Классы: иерархия\n// class A {}\n// class B extends A {}\n\n// Прототипы: гибкое делегирование\nconst speak = {\n  speak() { return \"...\"; }\n};\nconst move = {\n  move() { return \"moving\"; }\n};\n\n// Mixin: объединяем несколько прототипов\nconst animal = Object.assign(\n  Object.create(speak),\n  move\n);\nconsole.log(animal.speak());  // \"...\"\nconsole.log(animal.move());   // \"moving\""
+    },
+    {
+      "type": "note",
+      "content": "Цепочка прототипов — это поиск свойства снизу вверх: объект → прототип → прототип прототипа → null. Первое найденное свойство побеждает. Это делегирование: объект делегирует поиск 'предкам'."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай объект obj = { a: 1 }. Выведи obj.a, проверь наличие 'b' через in и проверь hasOwnProperty('a') (ожидаемый вывод: 1 false true)",
+      "starter": "const obj = { a: 1 };\n// console.log(obj.a, \"b\" in obj, obj.hasOwnProperty(\"a\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\.hasOwnProperty",
+          "message": "Используй hasOwnProperty()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "1 false true",
+          "message": "obj.a=1, \"b\" in obj, obj.hasOwnProperty(\"a\")"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const obj = { a: 1 };\nconsole.log(obj.a, \"b\" in obj, obj.hasOwnProperty(\"a\"));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай функцию-конструктор Person(name), которая сохраняет name в this. Добавь метод speak к Person.prototype, возвращающий this.name. Создай new Person(\"A\") и выведи speak() (ожидаемый вывод: A)",
+      "starter": "function Person(name) { this.name = name; }\nPerson.prototype.speak = function() { return this.name; };\n// console.log(new Person(\"A\").speak());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Person\\.prototype\\.speak",
+          "message": "Добавь метод через prototype"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "A",
+          "message": "Person.prototype.speak()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "function Person(name) { this.name = name; }\nPerson.prototype.speak = function() { return this.name; };\nconsole.log(new Person(\"A\").speak());"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай прототип proto = { speak() { return \"hi\"; } }. Создай объект через Object.create(proto) и выведи obj.speak() (ожидаемый вывод: hi)",
+      "starter": "const proto = { speak() { return \"hi\"; } };\n// const obj = Object.create(proto);\n// console.log(obj.speak());\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Object\\.create",
+          "message": "Используй Object.create()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "hi",
+          "message": "Object.create(proto).speak()"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const proto = { speak() { return \"hi\"; } };\nconst obj = Object.create(proto);\nconsole.log(obj.speak());"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Создай функцию-конструктор Animal. Добавь метод speak к Animal.prototype, возвращающий 'sound'. Создай экземпляр и выведи speak() и проверку instanceof (ожидаемый вывод: sound true)",
+      "starter": "function Animal() {}\nAnimal.prototype.speak = function() { return \"sound\"; };\n// const a = new Animal();\n// console.log(a.speak(), a instanceof Animal);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\binstanceof\\b",
+          "message": "Используй instanceof"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "sound true",
+          "message": "a.speak() и a instanceof Animal"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "function Animal() {}\nAnimal.prototype.speak = function() { return \"sound\"; };\nconst a = new Animal();\nconsole.log(a.speak(), a instanceof Animal);"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай объект obj = { a: 1, b: 2 }. Получи ключи через Object.keys() и выведи их через join(',') (ожидаемый вывод: a,b)",
+      "starter": "const obj = { a: 1, b: 2 };\n// const keys = Object.keys(obj);\n// console.log(keys.join(\",\"));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Object\\.keys",
+          "message": "Используй Object.keys()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "a,b",
+          "message": "Object.keys(obj)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "const obj = { a: 1, b: 2 };\nconst keys = Object.keys(obj);\nconsole.log(keys.join(\",\"));"
+    }
+  ],
+  "recap": [
+    "Прототип — объект, от которого наследуются свойства.",
+    "Цепочка прототипов: obj → obj.__proto__ → ... → null.",
+    "Object.create(proto) создаёт объект с proto как __proto__.",
+    "hasOwnProperty() проверяет собственное свойство (не из прототипа).",
+    "delete obj.prop удаляет собственное свойство — свойство из прототипа появляется.",
+    "Не мутуй встроенные прототипы (Array.prototype) — это ломает библиотеки."
+  ],
+  "quiz": [
+    {
+      "q": "Что делает Object.create(proto)?",
+      "options": [
+        "Создаёт класс",
+        "Создаёт объект с proto как прототипом",
+        "Удаляет объект",
+        "Создаёт массив"
+      ],
+      "answer": 1,
+      "explain": "Object.create(proto) создаёт новый объект, у которого proto становится __proto__."
+    },
+    {
+      "q": "Что будет при delete obj.prop, если prop есть в прототипе?",
+      "options": [
+        "Удалит из прототипа",
+        "Удалит из obj, свойство из прототипа останется",
+        "Ошибка",
+        "undefined"
+      ],
+      "answer": 1,
+      "explain": "delete удаляет только собственное свойство. При повторном чтении свойство найдётся в прототипе."
+    },
+    {
+      "q": "Почему не стоит мутить Array.prototype?",
+      "options": [
+        "Это медленно",
+        "Может сломать другие библиотеки",
+        "Нельзя",
+        "Это не работает"
+      ],
+      "answer": 1,
+      "explain": "Мутация встроенных прототипов конфликтует с другими библиотеками и новыми стандартами."
+    }
+  ]
+}

@@ -1,0 +1,393 @@
+{
+  "id": "javascript-23-promises",
+  "title": "Промисы: чек на пиццу",
+  "goal": "Создавать промисы, использовать then/catch/finally, понимать Event Loop",
+  "prereq": [
+    "javascript-09-functions",
+    "javascript-12-callbacks"
+  ],
+  "duration": 20,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Заказываешь пиццу — и не стоишь 30 минут у двери, глядя в глазок. Кассир даёт тебе <b>чек с номером</b>. Это и есть <b>промис</b>: обещание, что данные будут позже. Пока пиццу готовят, ты живёшь своей жизнью (выполняешь другой код). Когда курьер звонит в дверь — срабатывает <code>.then()</code> (успех). Если пиццерия закрылась — срабатывает <code>.catch()</code> (ошибка). Промис — это тот самый чек: он уже в руке, а еда ещё в пути."
+    },
+    {
+      "type": "text",
+      "content": "<b>Promise</b> — объект, представляющий результат асинхронной операции, которая ещё не завершилась. У промиса три состояния: <b>pending</b> (ожидание, пицца готовится), <b>fulfilled</b> (успех, пиццу доставили), <b>rejected</b> (ошибка, заказ отменён). Состояние меняется один раз и навсегда — из pending в fulfilled ИЛИ rejected."
+    },
+    {
+      "type": "code",
+      "content": "// Создаём промис: new Promise(executor)\nconst pizzaPromise = new Promise((resolve, reject) => {\n  // resolve — вызываем при успехе (пиццу привезли)\n  // reject — вызываем при ошибке (кухня закрылась)\n  const success = true;\n  if (success) {\n    resolve(\"Margherita\");  // fulfilled со значением\n  } else {\n    reject(\"Kitchen closed\");  // rejected с ошибкой\n  }\n});\n\n// Подписываемся на результат\npizzaPromise\n  .then(pizza => console.log(\"Доставлено:\", pizza))  // Margherita\n  .catch(err => console.error(\"Ошибка:\", err));"
+    },
+    {
+      "type": "heading",
+      "content": "resolve и reject — кнопки успеха и провала"
+    },
+    {
+      "type": "text",
+      "content": "Функция executor получает два колбэка: <code>resolve</code> переводит промис в fulfilled и передаёт значение; <code>reject</code> переводит в rejected и передаёт причину. Вызывается только ОДИН из них, и только один раз. После этого промис 'запечатан'."
+    },
+    {
+      "type": "code",
+      "content": "const p = new Promise((resolve, reject) => {\n  // Только resolve ИЛИ только reject\n  resolve(\"first\");   // этот промис теперь fulfilled\n  resolve(\"second\");  // игнорируется — состояние уже set!\n});\n\np.then(val => console.log(val));  // \"first\" — второе не дойдёт"
+    },
+    {
+      "type": "heading",
+      "content": ".then() — что делать при успехе"
+    },
+    {
+      "type": "text",
+      "content": "<code>.then(onSuccess)</code> регистрирует функцию, которая получит значение промиса когда он выполнится. .then() возвращает <b>НОВЫЙ промис</b> — это позволяет цепочку. Возврат значения из .then() передаётся дальше, возврат промиса — разворачивается."
+    },
+    {
+      "type": "code",
+      "content": "Promise.resolve(5)\n  .then(n => n * 2)      // 10 — вернули число\n  .then(n => n + 3)      // 13 — цепочка работает!\n  .then(n => console.log(n));  // 13\n\n// .then возвращает новый промис → можно цепочить"
+    },
+    {
+      "type": "heading",
+      "content": ".catch() — что делать при ошибке"
+    },
+    {
+      "type": "text",
+      "content": "<code>.catch(onError)</code> ловит ошибку из любого места цепочки выше. Если в .then() бросить throw — выполнение цепочки остановится и прыгнет в .catch(). Это как единый защитный купол для всей цепочки."
+    },
+    {
+      "type": "code",
+      "content": "Promise.resolve(10)\n  .then(n => {\n    if (n > 5) throw new Error(\"Too big\");  // бросаем ошибку\n    return n;\n  })\n  .then(n => console.log(\"не выполнится\"))  // пропускается\n  .catch(err => console.log(\"Поймал:\", err.message));\n  // Поймал: Too big"
+    },
+    {
+      "type": "predict",
+      "code": "console.log(\"1\");\nsetTimeout(() => console.log(\"2\"), 0);\nPromise.resolve().then(() => console.log(\"3\"));\nconsole.log(\"4\");",
+      "question": "В каком порядке выведутся числа?",
+      "options": [
+        "1,2,3,4",
+        "1,4,3,2",
+        "1,4,2,3",
+        "4,1,3,2"
+      ],
+      "answer": 1,
+      "explain": "Event Loop: сначала весь синхронный код (1, 4). Потом microtasks (Promise.then → 3). Потом macrotasks (setTimeout → 2). Promise быстрее setTimeout даже с задержкой 0!"
+    },
+    {
+      "type": "heading",
+      "content": ".finally() — выполняется всегда"
+    },
+    {
+      "type": "text",
+      "content": "<code>.finally()</code> выполняется независимо от результата — успех или ошибка. Не получает значение, только 'сигнал завершиться'. Идеально для уборки: скрыть лоадер, закрыть соединение."
+    },
+    {
+      "type": "code",
+      "content": "function loadUser(id) {\n  showLoader();  // показываем загрузку\n  return fetchUser(id)\n    .then(user => render(user))\n    .catch(err => showError(err))\n    .finally(() => hideLoader());  // скрываем лоадер ВСЕГДА\n}"
+    },
+    {
+      "type": "heading",
+      "content": "Event Loop: синхронно vs асинхронно"
+    },
+    {
+      "type": "text",
+      "content": "JavaScript однопоточный. <b>Event Loop</b> решает, что выполнить первым. Приоритет: (1) синхронный код, (2) microtasks (Promise.then, queueMicrotask), (3) macrotasks (setTimeout, setInterval). Поэтому Promise.then с задержкой 0 быстрее setTimeout с задержкой 0."
+    },
+    {
+      "type": "code",
+      "content": "console.log(\"A\");           // 1. синхронно\n\nsetTimeout(() => {\n  console.log(\"B\");         // 4. macrotask (позже)\n}, 0);\n\nPromise.resolve().then(() => {\n  console.log(\"C\");         // 3. microtask (раньше setTimeout)\n});\n\nconsole.log(\"D\");           // 2. синхронно\n\n// Порядок: A, D, C, B"
+    },
+    {
+      "type": "predict",
+      "code": "const p = new Promise(resolve => {\n  console.log(\"inner\");\n  resolve(42);\n});\nconsole.log(\"outer\");\np.then(v => console.log(v));",
+      "question": "Какой порядок вывода?",
+      "options": [
+        "inner, outer, 42",
+        "outer, inner, 42",
+        "inner, 42, outer",
+        "42, inner, outer"
+      ],
+      "answer": 0,
+      "explain": "Executor промиса выполняется СИНХРОННО при создании → 'inner'. Потом 'outer'. Потом .then() — microtask → 42. Executor не ждёт!"
+    },
+    {
+      "type": "heading",
+      "content": "Promise.resolve и Promise.reject"
+    },
+    {
+      "type": "text",
+      "content": "<code>Promise.resolve(value)</code> создаёт уже выполненный промис. <code>Promise.reject(error)</code> — уже отклонённый. Полезно для тестов и когда нужно вернуть промис из синхронной функции единообразно."
+    },
+    {
+      "type": "code",
+      "content": "// Уже выполненный промис\nPromise.resolve(\"done\").then(v => console.log(v));  // done\n\n// Уже отклонённый\nPromise.reject(\"fail\").catch(e => console.log(e));  // fail"
+    },
+    {
+      "type": "heading",
+      "content": "Promise.all — параллельно и ждём все"
+    },
+    {
+      "type": "text",
+      "content": "<code>Promise.all([p1, p2, p3])</code> запускает промисы <b>параллельно</b> и ждёт когда выполнятся ВСЕ. Возвращает массив результатов в исходном порядке. Если хоть один отклонён — весь all отклоняется мгновенно (fail fast)."
+    },
+    {
+      "type": "code",
+      "content": "// Загружаем 3 пользователя параллельно\nPromise.all([\n  fetchUser(1),\n  fetchUser(2),\n  fetchUser(3)\n])\n.then(users => {\n  console.log(users);  // [u1, u2, u3] — в исходном порядке\n})\n.catch(err => {\n  console.error(\"Хоть один упал:\", err);  // fail fast\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Promise.race — кто быстрее"
+    },
+    {
+      "type": "text",
+      "content": "<code>Promise.race([...])</code> берёт результат <b>самого быстрого</b> промиса — успех или ошибка, что первым завершится. Полезно для таймаутов: гонка запроса против таймера."
+    },
+    {
+      "type": "code",
+      "content": "// Запрос против таймера 5 секунд\nconst timeout = new Promise((_, reject) =>\n  setTimeout(() => reject(\"Timeout!\"), 5000)\n);\n\nPromise.race([fetchData(), timeout])\n  .then(data => console.log(data))\n  .catch(err => console.error(err));  // Timeout! если долго"
+    },
+    {
+      "type": "heading",
+      "content": "Promise.allSettled — ждём все, без fail fast"
+    },
+    {
+      "type": "text",
+      "content": "<code>Promise.allSettled</code> ждёт ВСЕ промисы и возвращает массив статусов, даже если часть упала. В отличие от all — никогда не отклоняется. Полезно когда каждая задача независима."
+    },
+    {
+      "type": "code",
+      "content": "Promise.allSettled([\n  Promise.resolve(\"ok\"),\n  Promise.reject(\"err\")\n]).then(results => {\n  console.log(results[0].status);  // \"fulfilled\"\n  console.log(results[0].value);   // \"ok\"\n  console.log(results[1].status);  // \"rejected\"\n  console.log(results[1].reason);  // \"err\"\n});"
+    },
+    {
+      "type": "tip",
+      "content": "Помни: <code>executor</code> внутри new Promise выполняется СИНХРОННО. Если там setTimeout — промис зависнет в pending. Правильно: внутри setTimeout вызвать resolve. Промис — это обёртка, а не заменитель таймера."
+    },
+    {
+      "type": "warning",
+      "content": "<b>Незавершённый промис = вечное ожидание.</b> Если в executor не вызвать ни resolve, ни reject — промис навсегда останется pending, и .then()/.catch() никогда не сработают. Частая ошибка: забыл ветку else, или ошибка в условии. Всегда гарантируй, что хоть одна кнопка нажмётся."
+    },
+    {
+      "type": "code",
+      "content": "// БАГ: промис никогда не завершится\nconst stuck = new Promise((resolve, reject) => {\n  if (false) resolve(\"ok\");\n  // нет else → resolve/reject не вызваны → pending forever\n});\n\nstuck.then(v => console.log(v));  // никогда не сработает\n\n// ПРАВИЛЬНО: гарантируем завершение\nconst good = new Promise((resolve, reject) => {\n  if (true) resolve(\"ok\");\n  else reject(\"fail\");  // есть обе ветки\n});"
+    },
+    {
+      "type": "heading",
+      "content": "Промисификация колбэков"
+    },
+    {
+      "type": "text",
+      "content": "Старые API работают через колбэки (<code>setTimeout</code>). Их можно обернуть в промис — это называется промисификация. Так callback-based код превращается в цепочки then/async-await."
+    },
+    {
+      "type": "code",
+      "content": "// Колбэк-API → промис\nfunction delay(ms) {\n  return new Promise(resolve => setTimeout(resolve, ms));\n}\n\ndelay(1000).then(() => console.log(\"прошла секунда\"));\n\n// Теперь setTimeout работает в цепочке промисов!"
+    },
+    {
+      "type": "heading",
+      "content": "State: как проверить состояние"
+    },
+    {
+      "type": "text",
+      "content": "Состояние промиса нельзя прочитать напрямую (нет promise.state). Только через then/catch. Это намеренно: ты не должен зависеть от состояния — ты подписываешься на результат. Промис сам сообщит когда будет готов."
+    },
+    {
+      "type": "code",
+      "content": "// Нельзя: console.log(promise.state) — undefined!\n// Только подписка через then/catch:\nconst p = new Promise(r => r(\"value\"));\n\np.then(v => {\n  console.log(\" fulfilled:\", v);  // узнаём результат так\n});"
+    },
+    {
+      "type": "note",
+      "content": "Промисы пришли на смену callback hell. Одна цепочка then вместо пирамиды вложенных колбэков. А async-await (следующий урок) сделает промисы визуально синхронными."
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай промис, который сразу вызывает resolve(\"done\"). Подпишись через .then и выведи значение (ожидаемый вывод: done)",
+      "starter": "const p = new Promise((resolve, reject) => {\n  // resolve(\"done\");\n});\np.then(v => console.log(v));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "new\\s+Promise",
+          "message": "Используй new Promise"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.then\\(",
+          "message": "Используй .then()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "done",
+          "message": "resolve(\"done\").then(v => console.log(v))"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const p = new Promise((resolve, reject) => {\n  resolve(\"done\");\n});\np.then(v => console.log(v));"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай Promise.resolve(5), затем через .then умножь на 3 и выведи результат (ожидаемый вывод: 15)",
+      "starter": "// Promise.resolve(5)\n//   .then(n => n * 3)\n//   .then(n => console.log(n));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Promise\\.resolve",
+          "message": "Используй Promise.resolve()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.then\\(",
+          "message": "Используй .then()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "15",
+          "message": "Promise.resolve(5).then(n => n * 3)"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "Promise.resolve(5)\n  .then(n => n * 3)\n  .then(n => console.log(n));"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай промис с reject(\"fail\"). Поймай через .catch и выведи причину (ожидаемый вывод: fail)",
+      "starter": "const p = new Promise((resolve, reject) => {\n  // reject(\"fail\");\n});\np.catch(err => console.log(err));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "new\\s+Promise",
+          "message": "Используй new Promise"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.catch\\(",
+          "message": "Используй .catch()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "fail",
+          "message": "reject(\"fail\").catch(err => console.log(err))"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "const p = new Promise((resolve, reject) => {\n  reject(\"fail\");\n});\np.catch(err => console.log(err));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Промис завис в pending — студент написал условие, которое никогда не истинно, и resolve не вызывается. Исправь, чтобы выводилось 'ok' (ожидаемый вывод: ok).",
+      "starter": "const p = new Promise((resolve, reject) => {\n  if (1 > 2) resolve(\"ok\");   // условие никогда не истинно\n});\np.then(v => console.log(v));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "new\\s+Promise",
+          "message": "Используй new Promise"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "ok",
+          "message": "resolve(\"ok\")"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "const p = new Promise((resolve, reject) => {\n  if (2 > 1) resolve(\"ok\");\n});\np.then(v => console.log(v));"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Через Promise.all заверши два промиса (resolve(1) и resolve(2)) и выведи сумму массива результатов (ожидаемый вывод: 3)",
+      "starter": "// Promise.all([Promise.resolve(1), Promise.resolve(2)])\n//   .then(arr => console.log(arr[0] + arr[1]));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "Promise\\.all",
+          "message": "Используй Promise.all()"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\.then\\(",
+          "message": "Используй .then()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "3",
+          "message": "Promise.all([1, 2]).then(arr => arr[0]+arr[1])"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "Promise.all([Promise.resolve(1), Promise.resolve(2)])\n  .then(arr => console.log(arr[0] + arr[1]));"
+    }
+  ],
+  "recap": [
+    "Promise — чек на пиццу: обещание результата позже.",
+    "Состояния: pending → fulfilled (resolve) или rejected (reject).",
+    ".then() — при успехе, .catch() — при ошибке, .finally() — всегда.",
+    ".then() возвращает новый промис → цепочки.",
+    "Event Loop: синхронно → microtasks (Promise) → macrotasks (setTimeout).",
+    "Promise.all — параллельно все (fail fast), race — кто быстрее."
+  ],
+  "quiz": [
+    {
+      "q": "Что быстрее: Promise.then или setTimeout(0)?",
+      "options": [
+        "setTimeout",
+        "Promise.then",
+        "Одинаково",
+        "Зависит от браузера"
+      ],
+      "answer": 1,
+      "explain": "Promise.then — microtask, выполняется раньше macrotask setTimeout."
+    },
+    {
+      "q": "Что вернёт .then()?",
+      "options": [
+        "undefined",
+        "Тот же промис",
+        "Новый промис",
+        "Значение напрямую"
+      ],
+      "answer": 2,
+      "explain": ".then() всегда возвращает новый промис — это основа цепочек."
+    },
+    {
+      "q": "Что делает Promise.all при одной ошибке?",
+      "options": [
+        "Игнорирует её",
+        "Отклоняется мгновенно (fail fast)",
+        "Ждёт все",
+        "Возвращает null"
+      ],
+      "answer": 1,
+      "explain": "Promise.all отклоняется сразу при первом reject (fail fast)."
+    }
+  ]
+}

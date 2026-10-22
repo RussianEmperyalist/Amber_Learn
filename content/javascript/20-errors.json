@@ -1,0 +1,363 @@
+{
+  "id": "javascript-20-errors",
+  "title": "Обработка ошибок: защитный купол",
+  "goal": "Использовать try/catch/finally, throw, создавать свои ошибки, понимать ошибки в JS",
+  "prereq": [
+    "javascript-16-classes"
+  ],
+  "duration": 18,
+  "theory": [
+    {
+      "type": "hook",
+      "content": "Программист без обработки ошибок — это <b>дом без защитного купола</b>. Обычная программа падает при первой ошибке: деление на ноль, нет файла, пользователь ввёл текст вместо числа. <code>try/catch</code> — это этот купол: он ловит ошибки и не даёт программе умереть. Вместо падения — ты пишешь: 'если что-то пошло не так, сделай вот так'."
+    },
+    {
+      "type": "text",
+      "content": "<b>Ошибки в JavaScript</b> — это объекты, которые <b>выбрасываются</b> (throw) при нештатной ситуации. Каждая ошибка имеет <code>name</code> (тип), <code>message</code> (описание) и <code>stack</code> (стек вызовов). Когда ошибка не ловится — программа падает. Когда ловится — ты можешь обработать её и продолжить."
+    },
+    {
+      "type": "code",
+      "content": "// Ошибка — это объект с name, message, stack\n// try — пробуем выполнить код, который может упасть\ntry {\n  // Этот код может выбросить ошибку\n  const result = 10 / 0;\n  console.log(result);  // Infinity — но не ошибка!\n} catch (error) {\n  // Если в try что-то упало — ловим ошибку здесь\n  console.error(\"Ошибка:\", error.message);\n} finally {\n  // Этот блок выполняется ВСЕГДА — и при успехе, и при ошибке\n  console.log(\"Конец операции\");\n}"
+    },
+    {
+      "type": "heading",
+      "content": "try — опасный код"
+    },
+    {
+      "type": "text",
+      "content": "<code>try</code> оборачивает код, который может выбросить ошибку. Если код выполняется без ошибок — блок catch пропускается. Если выбрасывается ошибка — выполнение сразу прыгает в catch. Код после ошибки в try НЕ выполняется."
+    },
+    {
+      "type": "code",
+      "content": "try {\n  // Парсим JSON — может быть невалидный\n  const data = JSON.parse('{bad json}');\n  console.log(data);  // НЕ выполнится!\n} catch (error) {\n  // JSON.parse выбросил SyntaxError — ловим\n  console.error(\"Битый JSON:\", error.message);\n}\n\nconsole.log(\"Программа продолжается\");  // выполняется — ошибка поймана!"
+    },
+    {
+      "type": "heading",
+      "content": "throw — выбросить ошибку"
+    },
+    {
+      "type": "text",
+      "content": "<code>throw</code> создаёт и выбрасывает ошибку. Это способ сказать 'что-то пошло не так'. Можно бросить строку (не рекомендуется), Error-объект (правильно) или свой класс ошибок. Throw останавливает выполнение и ищет catch."
+    },
+    {
+      "type": "code",
+      "content": "function divide(a, b) {\n  if (b === 0) {\n    // Выбрасываем ошибку — деление на ноль!\n    throw new Error(\"Division by zero\");\n  }\n  return a / b;  // только если b не ноль\n}\n\ntry {\n  console.log(divide(10, 2));  // 5 — ок\n  console.log(divide(10, 0));  // ошибка — прыгаем в catch\n  console.log(\"Это не выполнится\");\n} catch (error) {\n  console.error(\"Поймана:\", error.message);  // Division by zero\n}\n\nconsole.log(\"Программа продолжается\");  // выполняется!"
+    },
+    {
+      "type": "predict",
+      "code": "function test() {\n  throw new Error(\"Boom!\");\n  console.log(\"After throw\");\n}\ntry {\n  test();\n} catch (e) {\n  console.log(\"Caught:\", e.message);\n}\nconsole.log(\"End\");",
+      "question": "Что выведется?",
+      "options": [
+        "\"Boom!\" и \"End\"",
+        "\"After throw\" и \"End\"",
+        "Caught: Boom! и End",
+        "Ошибка выполнения"
+      ],
+      "answer": 2,
+      "explain": "throw останавливает выполнение функции. 'After throw' никогда не выполнится. Throw вызывает Error → ловится в catch → выводится 'Caught: Boom!' → программа продолжается → 'End'."
+    },
+    {
+      "type": "heading",
+      "content": "catch — обработка ошибки"
+    },
+    {
+      "type": "text",
+      "content": "<code>catch (error)</code> получает объект ошибки с полями: <code>error.name</code> (тип), <code>error.message</code> (текст), <code>error.stack</code> (стек вызовов). После catch выполнение продолжается — программа не падает."
+    },
+    {
+      "type": "code",
+      "content": "try {\n  const obj = JSON.parse(\"{bad}\");\n} catch (error) {\n  console.log(error.name);    // SyntaxError\n  console.log(error.message); // Unexpected token b\n  console.log(error.stack);   // Stack trace — где упало\n}\n\n// После catch — продолжаем\nconsole.log(\"Программа не упала\");"
+    },
+    {
+      "type": "heading",
+      "content": "finally — всегда выполняемый блок"
+    },
+    {
+      "type": "text",
+      "content": "<code>finally</code> выполняется <b>всегда</b>: и при успехе, и при ошибке, и при return в try. Полезно для очистки: закрыть файл, закрыть соединение, показать сообщение. Если есть finally — catch может отсутствовать."
+    },
+    {
+      "type": "code",
+      "content": "try {\n  console.log(\"Пытаемся открыть файл\");\n  // что-то может упасть\n} catch (error) {\n  console.error(\"Ошибка:\", error.message);\n} finally {\n  // Всегда выполняется!\n  console.log(\"Закрываем файл — независимо от результата\");\n}\n\n// Результат:\n// Пытаемся открыть файл\n// Закрываем файл — независимо от результата"
+    },
+    {
+      "type": "predict",
+      "code": "function test() {\n  try {\n    throw new Error(\"Boom!\");\n  } finally {\n    console.log(\"Finally\");\n  }\n  console.log(\"After\");\n}\ntest();",
+      "question": "Что выведется?",
+      "options": [
+        "\"Boom!\"",
+        "\"Finally\"",
+        "\"Finally\" и \"After\"",
+        "Ошибка выполнения"
+      ],
+      "answer": 1,
+      "explain": "finally выполняется всегда. После finally — ошибка распространяется дальше (нет catch). 'After' не выполнится, потому что throw не ловится. finally выведется, но потом ошибка уйдёт в catch сверху или упадёт."
+    },
+    {
+      "type": "heading",
+      "content": "Типы ошибок в JS"
+    },
+    {
+      "type": "text",
+      "content": "JavaScript имеет встроенные типы ошибок: <b>TypeError</b> (неверный тип значения), <b>ReferenceError</b> (переменная не объявлена), <b>SyntaxError</b> (битый синтаксис), <b>RangeError</b> (выход за диапазон), <b>URIError</b> (битый URI). Каждый тип — это класс, наследующий Error."
+    },
+    {
+      "type": "code",
+      "content": "// TypeError — вызываем метод у undefined\ntry {\n  undefined.foo();\n} catch (e) {\n  console.log(e.name);  // TypeError\n}\n\n// ReferenceError — используем необъявленную переменную\ntry {\n  console.log(nonexistent);\n} catch (e) {\n  console.log(e.name);  // ReferenceError\n}\n\n// RangeError — рекурсия без остановки\ntry {\n  function recurse() { recurse(); }\n  recurse();\n} catch (e) {\n  console.log(e.name);  // RangeError\n}\n\n// SyntaxError — при разборе кода\ntry {\n  eval(\"bad code\");\n} catch (e) {\n  console.log(e.name);  // SyntaxError"
+    },
+    {
+      "type": "heading",
+      "content": "Свои классы ошибок"
+    },
+    {
+      "type": "text",
+      "content": "Можно создать свой класс ошибок, наследуясь от Error. Это помогает различать типы ошибок в catch. Например, ValidationError для валидации, AuthError для авторизации. Каждый тип ловится отдельно."
+    },
+    {
+      "type": "code",
+      "content": "class ValidationError extends Error {\n  constructor(message) {\n    super(message);\n    this.name = \"ValidationError\";\n  }\n}\n\nclass AuthError extends Error {\n  constructor(message) {\n    super(message);\n    this.name = \"AuthError\";\n  }\n}\n\nfunction login(username, password) {\n  if (!username) throw new ValidationError(\"Username required\");\n  if (password.length < 8) throw new ValidationError(\"Password too short\");\n  if (password === \"12345678\") throw new AuthError(\"Too weak\");\n  return \"Logged in\";\n}\n\ntry {\n  login(\"\", \"password\");\n} catch (e) {\n  if (e instanceof ValidationError) {\n    console.log(\"Ошибка данных:\", e.message);\n  } else if (e instanceof AuthError) {\n    console.log(\"Ошибка авторизации:\", e.message);\n  }\n}"
+    },
+    {
+      "type": "warning",
+      "content": "<b>Пустой catch скрывает ошибки!</b> <code>catch (e) { }</code> — это самый опасный паттерн. Программа не падает, но и не сообщает о проблеме. Ошибка просто исчезает, и ты не можешь найти баг. Всегда хотя бы логируй: <code>catch (e) { console.error(e.message); }</code>. Если не можешь обработать — оставь ошибку или перебрось дальше."
+    },
+    {
+      "type": "code",
+      "content": "// ОПАСНО: пустой catch скрывает все ошибки\ntry {\n  JSON.parse(\"{bad}\");\n} catch (e) {\n  // Ничего не делаем — ошибка пропала!\n  // Программа продолжает работать с неинициализированными данными\n}\n\n// ПРАВИЛЬНО: хотя бы логируем\ntry {\n  JSON.parse(\"{bad}\");\n} catch (e) {\n  console.error(\"Невалидный JSON:\", e.message);\n  // Показываем пользователю сообщение, используем fallback\n  const data = null;\n}\n\n// ИЛИ: выбрасываем дальше\ntry {\n  JSON.parse(\"{bad}\");\n} catch (e) {\n  throw new Error(\"Failed to parse data: \" + e.message);\n}"
+    },
+    {
+      "type": "heading",
+      "content": "throw vs return"
+    },
+    {
+      "type": "text",
+      "content": "throw — это <b>исключение</b>, невалидное состояние, функция не может продолжить. return — это <b>результат</b>, нормальная работа. Если функция не может выполнить задачу — throw. Если может, но результат такой — return. Никогда не используй throw для обычной логики: если функция может вернуть что-то полезное — возвращай."
+    },
+    {
+      "type": "code",
+      "content": "// BAD: throw для 'нормального' случая\nfunction find(arr, val) {\n  if (!arr.includes(val)) {\n    throw \"Not found\";  // нет — это не ошибка!\n  }\n  return arr.indexOf(val);\n}\n\n// GOOD: возвращаем null, если не нашли\nfunction find(arr, val) {\n  const idx = arr.indexOf(val);\n  if (idx === -1) return null;  // null = 'не нашли'\n  return idx;\n}\n\n// throw — только для НАСТОЯЩИХ проблем\nfunction parseAge(str) {\n  const age = Number(str);\n  if (isNaN(age)) {\n    throw new Error(\"Invalid age\");  // это реально ошибка\n  }\n  return age;\n}"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>throw new Error(\"message\")</code> вместо <code>throw \"message\"</code>. Строковые throw не имеют name, stack и плохо отлаживаются. Error-объект даёт полную информацию для отладки через stack trace."
+    },
+    {
+      "type": "heading",
+      "content": "Деление на ноль в JS"
+    },
+    {
+      "type": "text",
+      "content": "Деление на ноль в JavaScript НЕ выбрасывает ошибку! <code>10 / 0</code> = Infinity, <code>0 / 0</code> = NaN. Это не баг — это стандарт IEEE 754. Но это ловушка для новичков: они думают, что будет ошибка, а получают Infinity или NaN."
+    },
+    {
+      "type": "code",
+      "content": "// Деление на ноль — НЕ ошибка!\nconsole.log(10 / 0);     // Infinity\nconsole.log(-10 / 0);    // -Infinity\nconsole.log(0 / 0);      // NaN (Not a Number)\nconsole.log(10 / \"abc\"); // NaN (нельзя преобразовать)\n\n// Проверка на NaN:\nconsole.log(Number.isNaN(NaN));  // true\nconsole.log(isNaN(NaN));         // true\n\n// Проверка на Infinity:\nconsole.log(Number.isFinite(10));  // true\nconsole.log(Number.isFinite(Infinity)); // false"
+    },
+    {
+      "type": "tip",
+      "content": "Используй <code>Number.isFinite(value)</code> вместо <code>value !== 0</code> для проверки на 'нормальное число'. Это проверит и Infinity, и -Infinity, и NaN. Для проверки NaN — только <code>Number.isNaN()</code>, потому что NaN !== NaN (это особенность IEEE 754)."
+    },
+    {
+      "type": "note",
+      "content": "catch может быть без finally, finally может быть без catch, но try должен быть с catch ИЛИ с finally (или с обоими). Нельзя написать просто try — это SyntaxError."
+    },
+    {
+      "type": "heading",
+      "content": "Nested try/catch — вложенные блоки"
+    },
+    {
+      "type": "text",
+      "content": "Можно вкладывать try/catch. Если внутренний catch не ловит ошибку — она распространяется к внешнему. Это позволяет обрабатывать разные уровни ошибок по-разному."
+    },
+    {
+      "type": "code",
+      "content": "try {\n  // Внешний try — общая обработка\n  try {\n    // Внутренний try — детальная обработка\n    const data = JSON.parse(\"{bad}\");\n  } catch (inner) {\n    console.error(\"Битый JSON:\", inner.message);\n    throw inner;  // Перебрасываем дальше\n  }\n} catch (outer) {\n  console.error(\"Общая ошибка:\", outer.message);\n  // Здесь можно показать пользователю\n}"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "t1",
+      "type": "guided",
+      "prompt": "Создай try/catch блок. В try брось ошибку через throw new Error('oops'). В catch выведи e.message (ожидаемый вывод: oops)",
+      "starter": "try {\n  // throw new Error(\"oops\");\n} catch (e) {\n  // console.log(e.message);\n}\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\btry\\b",
+          "message": "Используй try/catch"
+        },
+        {
+          "kind": "code-has",
+          "pattern": "\\bcatch\\b",
+          "message": "Добавь catch"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "oops",
+          "message": "catch поймал message \"oops\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "try {\n  throw new Error(\"oops\");\n} catch (e) {\n  console.log(e.message);\n}"
+    },
+    {
+      "id": "t2",
+      "type": "from-scratch",
+      "prompt": "Создай функцию divide(a, b), которая выбрасывает Error если b === 0. В try/catch выведи ошибку (ожидаемый вывод: Division by zero)",
+      "starter": "// function divide(a, b) {\n//   if (b === 0) throw new Error(\"Division by zero\");\n//   return a / b;\n// }\n// try {\n//   divide(10, 0);\n// } catch (e) {\n//   console.log(e.message);\n// }\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bfinally\\b",
+          "message": "Используй finally"
+        },
+        {
+          "kind": "stdout-lines",
+          "lines": [
+            "ok",
+            "done"
+          ],
+          "message": "try → \"ok\", finally → \"done\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "try {\n  console.log(\"ok\");\n} finally {\n  console.log(\"done\");\n}"
+    },
+    {
+      "id": "t3",
+      "type": "guided",
+      "prompt": "Создай функцию divide(a, b), которая выбрасывает Error если b === 0, иначе возвращает a / b. Вызови divide(10, 2) и выведи результат (ожидаемый вывод: 5)",
+      "starter": "function divide(a, b) {\n  if (b === 0) throw new Error(\"division by zero\");\n  return a / b;\n}\n// console.log(divide(10, 2));\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "throw\\s+new\\s+Error",
+          "message": "Используй throw new Error()"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "5",
+          "message": "divide(10, 2) = 5"
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Вспомни материал из теории. Посмотри на код в примере и попробуй повторить.",
+        "Решение использует именно тот приём, который обсуждался в теории. Вставь нужную строку кода."
+      ],
+      "solution": "function divide(a, b) {\n  if (b === 0) throw new Error(\"division by zero\");\n  return a / b;\n}\nconsole.log(divide(10, 2));"
+    },
+    {
+      "id": "t4",
+      "type": "debug",
+      "prompt": "Студент пишет пустой catch — ошибки не видны. Исправь: добавь console.log в catch (ожидаемый вывод: Error: something wrong).",
+      "starter": "try {\n  throw new Error(\"something wrong\");\n} catch (e) {\n  // ничего не делаем\n}\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "\\bfinally\\b",
+          "message": "Используй finally"
+        },
+        {
+          "kind": "stdout-lines",
+          "lines": [
+            "5",
+            "finally"
+          ],
+          "message": "try → 5, finally → \"finally\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Внимательно посмотри на строку, которая вызывает ошибку. Что здесь не так?",
+        "Замени одну строку в коде. Подсказка: нужно изменить значение или оператор."
+      ],
+      "solution": "try {\n  console.log(10 / 2);\n} catch (e) {\n  console.log(\"error\");\n} finally {\n  console.log(\"finally\");\n}"
+    },
+    {
+      "id": "t5",
+      "type": "from-scratch",
+      "prompt": "Создай класс MyError, наследующий Error, с name='MyError'. Создай new MyError('test') и выведи .name (ожидаемый вывод: MyError)",
+      "starter": "class MyError extends Error {\n  constructor(msg) { super(msg); this.name = \"MyError\"; }\n}\n// console.log(new MyError(\"test\").name);\n",
+      "checks": [
+        {
+          "kind": "code-has",
+          "pattern": "extends\\s+Error",
+          "message": "Наследуй от Error"
+        },
+        {
+          "kind": "stdout-exact",
+          "equals": "MyError",
+          "message": "MyError.name = \"MyError\""
+        },
+        {
+          "kind": "no-error"
+        }
+      ],
+      "hints": [
+        "Разбей задачу на шаги: сначала объяви переменные, затем выполни действие, потом выведи результат.",
+        "Попробуй использовать код из примера в теории как шаблон — замени только значения."
+      ],
+      "solution": "class MyError extends Error {\n  constructor(msg) { super(msg); this.name = \"MyError\"; }\n}\nconsole.log(new MyError(\"test\").name);"
+    }
+  ],
+  "recap": [
+    "try/catch/finally — защита от ошибок, программа не падает.",
+    "throw — выбросить ошибку, останавливает выполнение.",
+    "catch получает объект ошибки: name, message, stack.",
+    "finally выполняется ВСЕГДА — для очистки.",
+    "Пустой catch скрывает ошибки — всегда логируй.",
+    "10 / 0 = Infinity (не ошибка!), 0 / 0 = NaN."
+  ],
+  "quiz": [
+    {
+      "q": "Что делает finally?",
+      "options": [
+        "Выполняется при ошибке",
+        "Выполняется при успехе",
+        "Выполняется всегда",
+        "Ничего не делает"
+      ],
+      "answer": 2,
+      "explain": "finally выполняется всегда: при успехе, ошибке и return."
+    },
+    {
+      "q": "Что выбрасывает throw?",
+      "options": [
+        "Результат функции",
+        "Ошибку",
+        "undefined",
+        "true"
+      ],
+      "answer": 1,
+      "explain": "throw создаёт и выбрасывает ошибку, останавливая выполнение."
+    },
+    {
+      "q": "Чему равно 10 / 0 в JS?",
+      "options": [
+        "0",
+        "undefined",
+        "Infinity",
+        "Ошибка"
+      ],
+      "answer": 2,
+      "explain": "10 / 0 = Infinity. Это не ошибка — стандарт IEEE 754."
+    }
+  ]
+}

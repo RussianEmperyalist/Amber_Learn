@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amber Learn — Изучай код как нетраннер</title>
+  <meta name="theme-color" content="#0a0a0a">
+  <style>
+    html { visibility: hidden; }
+    html.ready { visibility: visible; }
+  </style>
+  <script>
+    window.addEventListener('load', function() {
+      document.documentElement.classList.add('ready');
+    });
+  </script>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles/cyberpunk.css?v=5">
+  <link rel="stylesheet" href="./styles/layout.css?v=5">
+  <script src="./js/highlighter.js?v=5" defer></script>
+</head>
+ <body>
+  <header class="app-header"></header>
+
+  <section class="hero">
+    <h1 class="hero-logo" id="heroLogo"></h1>
+    <p class="subtitle">Изучай JavaScript без воды.</p>
+    <div class="cta" id="heroCta">
+      <a href="./login.html" class="btn btn-primary">Создать аккаунт</a>
+      <a href="./login.html" class="btn btn-ghost">Войти</a>
+    </div>
+  </section>
+
+  <h2 class="section-title">Доступные модули</h2>
+  <div class="cards-grid" id="coursesGrid">
+    <div class="card"><span class="spinner"></span> Загрузка...</div>
+  </div>
+
+  <footer class="footer">
+    <p>AMBER LEARN</p>
+  </footer>
+
+  <div id="toasts"></div>
+
+  <script type="module">
+    import { renderHeader, toast } from './scripts/app.js?v=5';
+    import { content } from './scripts/content.js?v=5';
+    import { auth } from './scripts/auth.js?v=5';
+
+    renderHeader('home').catch(() => {});
+
+    (async () => {
+      const user = await auth.current();
+      const cta = document.getElementById('heroCta');
+      if (cta && user) {
+        cta.innerHTML = `<a href="./dashboard.html" class="btn btn-primary">Мой кабинет</a>`;
+      }
+    })();
+
+    (async () => {
+      try {
+        const courses = await content.getCourses();
+        const grid = document.getElementById('coursesGrid');
+        grid.innerHTML = courses.map(c => `
+          <a class="card course-card" href="./course.html?id=${c.id}">
+            <div class="icon">${c.icon}</div>
+            <h3>${c.title}</h3>
+            <p>${c.description}</p>
+            <div class="meta">
+              <span>${c.lessons} уроков</span>
+              <span class="badge">${c.level}</span>
+            </div>
+          </a>
+        `).join('');
+      } catch (e) {
+        toast('Не удалось загрузить курсы: ' + e.message, 'error');
+      }
+    })();
+  </script>
+
+  <script>
+    // Логотип — рендерим через JS, чтобы не светить класс glitch
+    (function renderHeroLogo() {
+      const el = document.getElementById('heroLogo');
+      if (el) el.innerHTML = '<span style="color:#f0f0f0">AMBER</span> <span style="color:#fcee0a">LEARN</span>';
+    })();
+  </script>
+
+   <script>
+    if ('serviceWorker' in navigator &&
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1') {
+      navigator.serviceWorker.register('./service-worker.js?v=5').then(reg => {
+        setInterval(() => reg.update(), 60000);
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'activated' && reg.active) {
+                const refreshing = sessionStorage.getItem('refreshing');
+                if (!refreshing) {
+                  sessionStorage.setItem('refreshing', '1');
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          const refreshing = sessionStorage.getItem('refreshing');
+          if (!refreshing) {
+            sessionStorage.setItem('refreshing', '1');
+            window.location.reload();
+          }
+        });
+      });
+    } else if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(rs => {
+        rs.forEach(r => r.unregister());
+      });
+      if (window.caches) {
+        caches.keys().then(ks => ks.forEach(k => caches.delete(k)));
+      }
+    }
+  </script>
+</body>
+</html>
+
